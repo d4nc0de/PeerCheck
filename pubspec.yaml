@@ -23,6 +23,8 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
+  assets:
+      - assets/images/Peertrack_LOGO.png
   uses-material-design: true
 
 # ESTO DEBE ESTAR FUERA DE LA SECCIÓN FLUTTER:

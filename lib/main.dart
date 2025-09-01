@@ -1,4 +1,6 @@
+import 'package:f_clean_template/features/product/data/datasources/i_remote_class_source.dart';
 import 'package:f_clean_template/features/product/data/datasources/local/local_product_source.dart';
+import 'package:f_clean_template/features/product/data/datasources/local/local_remote_class_source.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -14,7 +16,6 @@ import 'features/auth/domain/repositories/i_auth_repository.dart';
 import 'features/auth/domain/use_case/authentication_usecase.dart';
 import 'features/auth/ui/controller/authentication_controller.dart';
 import 'features/product/data/datasources/i_remote_product_source.dart';
-import 'features/product/data/datasources/remote_product_source.dart';
 import 'features/product/data/repositories/product_repository.dart';
 import 'features/product/domain/repositories/i_product_repository.dart';
 import 'features/product/domain/use_case/product_usecase.dart';
@@ -36,6 +37,7 @@ void main() {
   //  RemoteProductSource(Get.find<http.Client>(tag: 'apiClient')),
   //);
   Get.put<IProductSource>(LocalProductSource());
+  Get.put<IClassSource>(LocalClassSource());
   Get.put<IProductRepository>(ProductRepository(Get.find()));
   Get.put(ProductUseCase(Get.find()));
   Get.lazyPut(() => ProductController());
@@ -48,7 +50,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'PeerCheck',
+      title: 'Clean template',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       debugShowCheckedModeBanner: false,

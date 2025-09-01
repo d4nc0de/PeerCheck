@@ -2,9 +2,23 @@ import '../../../domain/models/product.dart';
 import '../i_remote_product_source.dart';
 
 class LocalProductSource implements IProductSource {
-  final List<Product> _products = <Product>[];
+  final List<Product> _products;
 
-  LocalProductSource();
+  LocalProductSource()
+      : _products = [
+          Product(
+            id: '1',
+            name: 'Programación Móvil',
+            description: 'Augusto Salazar',
+            quantity: 5566,
+          ),
+          Product(
+            id: '2',
+            name: 'Bases de Datos',
+            description: 'Carlos Ruiz',
+            quantity: 7788,
+          ),
+        ];
 
   @override
   Future<bool> addProduct(Product product) {
@@ -27,6 +41,7 @@ class LocalProductSource implements IProductSource {
 
   @override
   Future<List<Product>> getProducts() {
+    // siempre devuelve la lista actual (con las quemadas iniciales)
     return Future.value(_products);
   }
 
