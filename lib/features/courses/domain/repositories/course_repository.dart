@@ -1,18 +1,27 @@
 import 'package:f_clean_template/features/courses/domain/models/course.dart';
 import 'package:f_clean_template/features/courses/domain/repositories/i_course_repository.dart';
-import 'package:f_clean_template/features/courses/data/datasources/i_course_source.dart';
 
-class CourseRepository implements ICourseRepository {
-  final ICourseSource courseSource;
+class CourseUseCase {
+  final ICourseRepository courseRepository;
 
-  CourseRepository(this.courseSource);
+  CourseUseCase(this.courseRepository);
 
-  @override
   Future<List<Course>> getCourses() async {
-    return await courseSource.getCourses();
+    return await courseRepository.getCourses();
   }
 
-  @override
+  Future<List<Course>> getTeacherCourses() async {
+    return await courseRepository.getTeacherCourses();
+  }
+
+  Future<List<Course>> getStudentCourses() async {
+    return await courseRepository.getStudentCourses();
+  }
+
+  Future<List<Course>> getCoursesByRole(bool isTeacher) async {
+    return await courseRepository.getCoursesByRole(isTeacher);
+  }
+
   Future<void> addCourse(
     String name,
     int nrc,
@@ -20,7 +29,7 @@ class CourseRepository implements ICourseRepository {
     String category,
     int maxStudents,
   ) async {
-    return await courseSource.addCourse(
+    return await courseRepository.addCourse(
       name,
       nrc,
       teacher,
@@ -29,28 +38,23 @@ class CourseRepository implements ICourseRepository {
     );
   }
 
-  @override
   Future<void> updateCourse(Course course) async {
-    return await courseSource.updateCourse(course);
+    return await courseRepository.updateCourse(course);
   }
 
-  @override
   Future<void> deleteCourse(Course course) async {
-    return await courseSource.deleteCourse(course);
+    return await courseRepository.deleteCourse(course);
   }
 
-  @override
   Future<void> deleteCourses() async {
-    return await courseSource.deleteCourses();
+    return await courseRepository.deleteCourses();
   }
 
-  @override
   Future<void> enrollUser(String courseId, String userEmail) async {
-    return await courseSource.enrollUser(courseId, userEmail);
+    return await courseRepository.enrollUser(courseId, userEmail);
   }
 
-  @override
   Future<void> unenrollUser(String courseId, String userEmail) async {
-    return await courseSource.unenrollUser(courseId, userEmail);
+    return await courseRepository.unenrollUser(courseId, userEmail);
   }
 }

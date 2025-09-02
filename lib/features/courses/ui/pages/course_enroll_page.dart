@@ -21,8 +21,11 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
       try {
         final currentUserEmail = "estudiante@ejemplo.com";
 
-        final courses = courseController.courses;
-        final courseToEnroll = courses.firstWhere(
+        // Obtener todos los cursos (tanto de profesor como de estudiante)
+        await courseController.getTeacherCourses();
+        final teacherCourses = courseController.teacherCourses;
+
+        final courseToEnroll = teacherCourses.firstWhere(
           (course) => course.nrc.toString() == controllerCourseCode.text,
           orElse: () =>
               Course(id: '', name: '', nrc: 0, teacher: '', category: ''),

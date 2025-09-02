@@ -33,6 +33,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Cargar cursos según el rol inicial
+    courseController.getCoursesByRole(_role == UserRole.profesor);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).extension<RolePalette>()!;
     final bool isProfesor = _role == UserRole.profesor;
@@ -106,7 +113,11 @@ class _HomePageState extends State<HomePage> {
                 role: _role,
                 profesorColor: palette.profesorAccent,
                 estudianteColor: palette.estudianteAccent,
-                onChanged: (r) => setState(() => _role = r),
+                onChanged: (r) {
+                  setState(() => _role = r);
+                  // Cargar cursos según el nuevo rol
+                  courseController.getCoursesByRole(r == UserRole.profesor);
+                },
               ),
             ),
 
@@ -125,12 +136,15 @@ class _HomePageState extends State<HomePage> {
                   () => courseController.isLoading.value
                       ? const Center(child: CircularProgressIndicator())
                       : RefreshIndicator(
-                          onRefresh: () async => courseController.getCourses(),
+                          onRefresh: () async =>
+                              courseController.getCoursesByRole(isProfesor),
                           child: ListView(
                             padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                             children: [
                               for (final course
-                                  in courseController.courses) ...[
+                                  in courseController.getCurrentCourses(
+                                    isProfesor,
+                                  )) ...[
                                 _ClassCard(
                                   title: course.name,
                                   nrc: course.nrc,

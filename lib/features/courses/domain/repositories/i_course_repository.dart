@@ -2,6 +2,9 @@ import '../models/course.dart';
 
 abstract class ICourseRepository {
   Future<List<Course>> getCourses();
+  Future<List<Course>> getTeacherCourses();
+  Future<List<Course>> getStudentCourses();
+  Future<List<Course>> getCoursesByRole(bool isTeacher);
   Future<void> addCourse(
     String name,
     int nrc,
