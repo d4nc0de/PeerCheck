@@ -1,6 +1,6 @@
-import 'package:f_clean_template/features/product/domain/models/course.dart';
-import 'package:f_clean_template/features/product/domain/repositories/i_course_repository.dart';
-import 'package:f_clean_template/features/product/data/datasources/i_course_source.dart';
+import 'package:f_clean_template/features/courses/domain/models/course.dart';
+import 'package:f_clean_template/features/courses/domain/repositories/i_course_repository.dart';
+import 'package:f_clean_template/features/courses/data/datasources/i_course_source.dart';
 
 class CourseRepository implements ICourseRepository {
   final ICourseSource courseSource;

@@ -1,5 +1,5 @@
-import 'package:f_clean_template/features/product/domain/models/course.dart';
-import 'package:f_clean_template/features/product/data/datasources/i_course_source.dart';
+import 'package:f_clean_template/features/courses/domain/models/course.dart';
+import 'package:f_clean_template/features/courses/data/datasources/i_course_source.dart';
 
 class LocalCourseSource implements ICourseSource {
   final List<Course> _courses = [];

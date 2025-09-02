@@ -1,4 +1,4 @@
-import 'package:f_clean_template/features/product/domain/models/course.dart';
+import 'package:f_clean_template/features/courses/domain/models/course.dart';
 
 abstract class ICourseSource {
   Future<List<Course>> getCourses();

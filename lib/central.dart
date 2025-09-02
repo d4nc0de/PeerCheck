@@ -1,4 +1,4 @@
-import 'package:f_clean_template/features/product/ui/pages/home_page.dart';
+import 'package:f_clean_template/features/courses/ui/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

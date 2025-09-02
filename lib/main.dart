@@ -1,4 +1,4 @@
-import 'package:f_clean_template/features/product/data/datasources/local/local_course_source.dart';
+import 'package:f_clean_template/features/courses/data/datasources/local/local_course_source.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -13,11 +13,11 @@ import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/auth/domain/repositories/i_auth_repository.dart';
 import 'features/auth/domain/use_case/authentication_usecase.dart';
 import 'features/auth/ui/controller/authentication_controller.dart';
-import 'features/product/data/datasources/i_course_source.dart';
-import 'features/product/data/repositories/course_repository.dart';
-import 'features/product/domain/repositories/i_course_repository.dart';
-import 'features/product/domain/use_case/course_usecase.dart';
-import 'features/product/ui/controller/course_controller.dart';
+import 'features/courses/data/datasources/i_course_source.dart';
+import 'features/courses/data/repositories/course_repository.dart';
+import 'features/courses/domain/repositories/i_course_repository.dart';
+import 'features/courses/domain/use_case/course_usecase.dart';
+import 'features/courses/ui/controller/course_controller.dart';
 
 void main() {
   Loggy.initLoggy(logPrinter: const PrettyPrinter(showColors: true));
