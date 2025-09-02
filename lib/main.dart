@@ -1,6 +1,4 @@
-import 'package:f_clean_template/features/product/data/datasources/i_remote_class_source.dart';
-import 'package:f_clean_template/features/product/data/datasources/local/local_product_source.dart';
-import 'package:f_clean_template/features/product/data/datasources/local/local_remote_class_source.dart';
+import 'package:f_clean_template/features/product/data/datasources/local/local_course_source.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -15,11 +13,11 @@ import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/auth/domain/repositories/i_auth_repository.dart';
 import 'features/auth/domain/use_case/authentication_usecase.dart';
 import 'features/auth/ui/controller/authentication_controller.dart';
-import 'features/product/data/datasources/i_remote_product_source.dart';
-import 'features/product/data/repositories/product_repository.dart';
-import 'features/product/domain/repositories/i_product_repository.dart';
-import 'features/product/domain/use_case/product_usecase.dart';
-import 'features/product/ui/controller/product_controller.dart';
+import 'features/product/data/datasources/i_course_source.dart';
+import 'features/product/data/repositories/course_repository.dart';
+import 'features/product/domain/repositories/i_course_repository.dart';
+import 'features/product/domain/use_case/course_usecase.dart';
+import 'features/product/ui/controller/course_controller.dart';
 
 void main() {
   Loggy.initLoggy(logPrinter: const PrettyPrinter(showColors: true));
@@ -32,15 +30,12 @@ void main() {
   Get.put(AuthenticationUseCase(Get.find()));
   Get.put(AuthenticationController(Get.find()));
 
-  // Product
-  //Get.put<IProductSource>(
-  //  RemoteProductSource(Get.find<http.Client>(tag: 'apiClient')),
-  //);
-  Get.put<IProductSource>(LocalProductSource());
-  Get.put<IClassSource>(LocalClassSource());
-  Get.put<IProductRepository>(ProductRepository(Get.find()));
-  Get.put(ProductUseCase(Get.find()));
-  Get.lazyPut(() => ProductController());
+  // Course
+  Get.put<ICourseSource>(LocalCourseSource());
+  Get.put<ICourseRepository>(CourseRepository(Get.find()));
+  Get.put(CourseUseCase(Get.find()));
+  Get.lazyPut(() => CourseController());
+
   runApp(const MyApp());
 }
 
@@ -50,7 +45,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Clean template',
+      title: 'PeerCheck - Evaluación entre Pares',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       debugShowCheckedModeBanner: false,

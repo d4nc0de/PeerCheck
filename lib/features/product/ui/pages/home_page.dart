@@ -4,9 +4,9 @@ import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
 import '../../../auth/ui/controller/authentication_controller.dart';
-import '../controller/product_controller.dart';
-import 'add_product_page.dart';
-import 'edit_product_page.dart';
+import '../controller/course_controller.dart';
+import 'add_course_page.dart';
+import 'course_enrollment_page.dart';
 
 enum UserRole { profesor, estudiante }
 
@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ProductController productController = Get.find();
+  final CourseController courseController = Get.find();
   final AuthenticationController authController = Get.find();
 
   UserRole _role = UserRole.profesor;
@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
           ),
           IconButton(
             icon: const Icon(Icons.delete_forever, color: Colors.black87),
-            onPressed: () => productController.deleteProducts(),
+            onPressed: () => courseController.deleteCourses(),
             tooltip: 'Borrar todo',
           ),
         ],
@@ -79,16 +79,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    "Jesus",
+                    "PeerCheck",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w200,
-                      fontSize: 26
+                      fontSize: 26,
                     ),
                   ),
                 ],
               ),
             ),
-
 
             Padding(
               padding: const EdgeInsets.only(top: 6, bottom: 12),
@@ -123,39 +122,45 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 child: Obx(
-                  () => productController.isLoading.value
+                  () => courseController.isLoading.value
                       ? const Center(child: CircularProgressIndicator())
                       : RefreshIndicator(
-                          onRefresh: () async =>
-                              // productController.getProducts(),
-                              productController.getProducts(),
+                          onRefresh: () async => courseController.getCourses(),
                           child: ListView(
                             padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                             children: [
-                              for (final p in productController.products) ...[
+                              for (final course
+                                  in courseController.courses) ...[
                                 _ClassCard(
-                                  title: p.name,
-                                  nrc: p.quantity, // quantity como NRC
-                                  teacher: p
-                                      .description, // description como profesor
+                                  title: course.name,
+                                  nrc: course.nrc,
+                                  teacher: course.teacher,
+                                  enrolledCount: course.enrolledCount,
+                                  maxStudents: course.maxStudents,
                                   accent: accent,
                                   bg: cardBg,
                                   onTap: () {
+                                    // Navegar a detalles del curso si es necesario
+                                  },
+                                  onEnrollmentTap: () {
                                     Get.to(
-                                      () => const EditProductPage(),
-                                      arguments: [p, p.id],
+                                      () => CourseEnrollmentPage(
+                                        courseId: course.id!,
+                                        courseName: course.name,
+                                      ),
                                     );
                                   },
                                   onDismissed: () =>
-                                      productController.deleteProduct(p),
+                                      courseController.deleteCourse(course),
                                 ),
                                 const SizedBox(height: 18),
                               ],
-                              _AddBigCard(
-                                accentBg: cardBg,
-                                onAdd: () =>
-                                    Get.to(() => const AddProductPage()),
-                              ),
+                              if (isProfesor)
+                                _AddBigCard(
+                                  accentBg: cardBg,
+                                  onAdd: () =>
+                                      Get.to(() => const AddCoursePage()),
+                                ),
                             ],
                           ),
                         ),
@@ -171,12 +176,18 @@ class _HomePageState extends State<HomePage> {
         currentIndex: 0,
         selectedItemColor: accent,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Inicio'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_filled),
+            label: 'Inicio',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment),
             label: 'Resultados',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person_pin), label: 'Perfil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_pin),
+            label: 'Perfil',
+          ),
         ],
       ),
     );
@@ -273,18 +284,24 @@ class _ClassCard extends StatelessWidget {
   final String title;
   final int nrc;
   final String teacher;
+  final int enrolledCount;
+  final int maxStudents;
   final Color accent;
   final Color bg;
   final VoidCallback onTap;
+  final VoidCallback onEnrollmentTap;
   final VoidCallback onDismissed;
 
   const _ClassCard({
     required this.title,
     required this.nrc,
     required this.teacher,
+    required this.enrolledCount,
+    required this.maxStudents,
     required this.accent,
     required this.bg,
     required this.onTap,
+    required this.onEnrollmentTap,
     required this.onDismissed,
   });
 
@@ -314,6 +331,7 @@ class _ClassCard extends StatelessWidget {
         ),
         child: InkWell(
           onTap: onTap,
+          onLongPress: onEnrollmentTap,
           borderRadius: BorderRadius.circular(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,12 +339,14 @@ class _ClassCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(width: 1, height: 1),
+                  Badge(
+                    label: Text('$enrolledCount/$maxStudents'),
+                    backgroundColor: accent,
+                  ),
                   Container(
                     width: 18,
                     height: 4,
                     decoration: BoxDecoration(
-                      // ignore: deprecated_member_use
                       color: accent.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(2),
                     ),
