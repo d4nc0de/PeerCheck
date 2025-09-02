@@ -7,6 +7,7 @@ import '../../../auth/ui/controller/authentication_controller.dart';
 import '../controller/course_controller.dart';
 import 'add_course_page.dart';
 import 'course_enrollment_page.dart';
+import 'course_enroll_page.dart';
 
 enum UserRole { profesor, estudiante }
 
@@ -55,12 +56,12 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.exit_to_app, color: Colors.black87),
             onPressed: _logout,
-            tooltip: 'Salir',
+            tooltip: 'Cerrar sesión',
           ),
           IconButton(
             icon: const Icon(Icons.delete_forever, color: Colors.black87),
             onPressed: () => courseController.deleteCourses(),
-            tooltip: 'Borrar todo',
+            tooltip: 'Eliminar todos los cursos',
           ),
         ],
       ),
@@ -111,7 +112,6 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 14),
 
-            // Zona gris y lista
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -140,27 +140,40 @@ class _HomePageState extends State<HomePage> {
                                   accent: accent,
                                   bg: cardBg,
                                   onTap: () {
-                                    // Navegar a detalles del curso si es necesario
-                                  },
-                                  onEnrollmentTap: () {
-                                    Get.to(
-                                      () => CourseEnrollmentPage(
-                                        courseId: course.id!,
-                                        courseName: course.name,
-                                      ),
-                                    );
+                                    if (isProfesor) {
+                                      Get.to(
+                                        () => CourseEnrollmentPage(
+                                          courseId: course.id,
+                                          courseName: course.name,
+                                          courseCode: course.nrc.toString(),
+                                        ),
+                                      );
+                                    } else {
+                                      Get.to(
+                                        () => CourseEnrollmentPage(
+                                          courseId: course.id,
+                                          courseName: course.name,
+                                          isStudentView: true,
+                                        ),
+                                      );
+                                    }
                                   },
                                   onDismissed: () =>
                                       courseController.deleteCourse(course),
                                 ),
                                 const SizedBox(height: 18),
                               ],
-                              if (isProfesor)
-                                _AddBigCard(
-                                  accentBg: cardBg,
-                                  onAdd: () =>
-                                      Get.to(() => const AddCoursePage()),
-                                ),
+                              _AddBigCard(
+                                accentBg: cardBg,
+                                onAdd: () {
+                                  if (isProfesor) {
+                                    Get.to(() => const AddCoursePage());
+                                  } else {
+                                    Get.to(() => const CourseEnrollPage());
+                                  }
+                                },
+                                isProfesor: isProfesor,
+                              ),
                             ],
                           ),
                         ),
@@ -171,7 +184,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-      // Bottom bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: accent,
@@ -289,7 +301,6 @@ class _ClassCard extends StatelessWidget {
   final Color accent;
   final Color bg;
   final VoidCallback onTap;
-  final VoidCallback onEnrollmentTap;
   final VoidCallback onDismissed;
 
   const _ClassCard({
@@ -301,7 +312,6 @@ class _ClassCard extends StatelessWidget {
     required this.accent,
     required this.bg,
     required this.onTap,
-    required this.onEnrollmentTap,
     required this.onDismissed,
   });
 
@@ -331,7 +341,6 @@ class _ClassCard extends StatelessWidget {
         ),
         child: InkWell(
           onTap: onTap,
-          onLongPress: onEnrollmentTap,
           borderRadius: BorderRadius.circular(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,7 +385,13 @@ class _ClassCard extends StatelessWidget {
 class _AddBigCard extends StatelessWidget {
   final Color accentBg;
   final VoidCallback onAdd;
-  const _AddBigCard({required this.accentBg, required this.onAdd});
+  final bool isProfesor;
+
+  const _AddBigCard({
+    required this.accentBg,
+    required this.onAdd,
+    required this.isProfesor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -400,7 +415,11 @@ class _AddBigCard extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [BoxShadow(blurRadius: 6, color: Colors.black12)],
             ),
-            child: const Icon(Icons.add, size: 28, color: Color(0xFF9EA4AE)),
+            child: Icon(
+              isProfesor ? Icons.add : Icons.search,
+              size: 28,
+              color: const Color(0xFF9EA4AE),
+            ),
           ),
         ),
       ),

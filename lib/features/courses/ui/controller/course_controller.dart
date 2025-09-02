@@ -70,8 +70,13 @@ class CourseController extends GetxController {
   List<String> getEnrolledUsers(String courseId) {
     final course = _courses.firstWhere(
       (c) => c.id == courseId,
-      orElse: () => Course(name: '', nrc: 0, teacher: '', category: ''),
+      orElse: () => Course(id: '', name: '', nrc: 0, teacher: '', category: ''),
     );
+
+    if (course.name.isEmpty) {
+      return [];
+    }
+
     return course.enrolledUsers;
   }
 }

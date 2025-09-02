@@ -1,6 +1,6 @@
 class Course {
   Course({
-    this.id,
+    required this.id,
     required this.name,
     required this.nrc,
     required this.teacher,
@@ -9,16 +9,16 @@ class Course {
     this.maxStudents = 30,
   });
 
-  String? id;
-  String name;
-  int nrc;
-  String teacher;
-  String category;
+  final String id;
+  final String name;
+  final int nrc;
+  final String teacher;
+  final String category;
   List<String> enrolledUsers;
   int maxStudents;
 
   factory Course.fromJson(Map<String, dynamic> json) => Course(
-    id: json["_id"],
+    id: json["_id"] ?? "",
     name: json["name"] ?? "---",
     nrc: json["nrc"] ?? 0,
     teacher: json["teacher"] ?? "---",
@@ -28,7 +28,7 @@ class Course {
   );
 
   Map<String, dynamic> toJson() => {
-    "_id": id ?? "0",
+    "_id": id,
     "name": name,
     "nrc": nrc,
     "teacher": teacher,
