@@ -169,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
                               fontSize: 14,
                             ),
                             decoration: InputDecoration(
-                              hintText: "********",
+                              hintText: "Mínimo 6 caracteres",
                               filled: true,
                               fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(

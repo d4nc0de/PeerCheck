@@ -27,12 +27,12 @@ class _SignUpPageState extends State<SignUpPage> {
   // Improved email validator
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return "Email is required";
+      return "Correo electrónico es obligatorio";
     }
     
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
-      return "Enter a valid email address";
+      return "Ingrese un correo electrónico válido";
     }
     
     return null;
@@ -41,11 +41,11 @@ class _SignUpPageState extends State<SignUpPage> {
   // Improved password validator
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return "Password is required";
+      return "Contraseña es obligatoria";
     }
     
     if (value.length < 6) {
-      return "Password must be at least 6 characters long";
+      return "La contraseña debe tener al menos 6 caracteres";
     }
     
     return null;
@@ -54,11 +54,11 @@ class _SignUpPageState extends State<SignUpPage> {
   // Confirm password validator
   String? _validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
-      return "Please confirm your password";
+      return "Por favor confirme su contraseña";
     }
     
     if (value != controllerPassword.text) {
-      return "Passwords do not match";
+      return "Las contraseñas no coinciden";
     }
     
     return null;
@@ -69,15 +69,15 @@ class _SignUpPageState extends State<SignUpPage> {
       await authenticationController.signUp(theEmail, thePassword);
 
       Get.snackbar(
-        "Sign Up",
-        'User successfully created',
+        "Crear cuenta",
+        'Cuenta creada exitosamente',
         icon: const Icon(Icons.check_circle, color: Colors.green),
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (err) {
       logError('SignUp error $err');
       Get.snackbar(
-        "Sign Up",
+        "Crear cuenta",
         err.toString(),
         icon: const Icon(Icons.person, color: Colors.red),
         snackPosition: SnackPosition.BOTTOM,
@@ -115,7 +115,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     const Expanded(
                       child: Center(
                         child: Text(
-                          "Create Account",
+                          "Crear Cuenta",
                           style: TextStyle(
                             fontFamily: "Poppins",
                             fontSize: 20,
@@ -157,7 +157,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           
                           // First name field
                           const Text(
-                            "First Name",
+                            "Nombre",
                             style: TextStyle(
                               fontFamily: "Poppins",
                               fontSize: 14,
@@ -215,10 +215,10 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return "First name is required";
+                                  return "Nombre es obligatorio";
                                 }
                                 if (value.length < 2) {
-                                  return "First name must be at least 2 characters long";
+                                  return "El nombre debe tener al menos 2 caracteres";
                                 }
                                 return null;
                               },
@@ -228,7 +228,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           // Last name field
                           const Text(
-                            "Last Name",
+                            "Apellido",
                             style: TextStyle(
                               fontFamily: "Poppins",
                               fontSize: 14,
@@ -286,10 +286,10 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return "Last name is required";
+                                  return "Apellido es obligatorio";
                                 }
                                 if (value.length < 2) {
-                                  return "Last name must be at least 2 characters long";
+                                  return "Apellido debe tener al menos 2 caracteres";
                                 }
                                 return null;
                               },
@@ -299,7 +299,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           // Email field
                           const Text(
-                            "Email",
+                            "Correo Electrónico",
                             style: TextStyle(
                               fontFamily: "Poppins",
                               fontSize: 14,
@@ -362,7 +362,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           // Password field
                           const Text(
-                            "Password",
+                            "Contraseña",
                             style: TextStyle(
                               fontFamily: "Poppins",
                               fontSize: 14,
@@ -439,7 +439,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           // Confirm password field
                           const Text(
-                            "Confirm Password",
+                            "Confirmar Contraseña",
                             style: TextStyle(
                               fontFamily: "Poppins",
                               fontSize: 14,
@@ -534,7 +534,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     });
                                   },
                                   child: const Text(
-                                    "I accept the terms and conditions of use",
+                                    "Acepto los términos y condiciones",
                                     style: TextStyle(
                                       fontFamily: "Poppins",
                                       fontSize: 12,
@@ -572,8 +572,8 @@ class _SignUpPageState extends State<SignUpPage> {
                               onPressed: () async {
                                 if (!_acceptTerms) {
                                   Get.snackbar(
-                                    "Terms and Conditions",
-                                    "You must accept the terms and conditions",
+                                    "Términos y Condiciones",
+                                    "Debe aceptar los términos y condiciones para continuar",
                                     icon: const Icon(Icons.warning, color: Colors.orange),
                                     snackPosition: SnackPosition.BOTTOM,
                                   );
@@ -588,7 +588,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 }
                               },
                               child: const Text(
-                                "Sign Up",
+                                "Crear Cuenta",
                                 style: TextStyle(
                                   fontFamily: "Poppins",
                                   fontSize: 16,
@@ -605,7 +605,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text(
-                                "Already have an account? ",
+                                "¿Ya tienes una cuenta? ",
                                 style: TextStyle(
                                   fontFamily: "Poppins",
                                   fontSize: 12,
@@ -617,7 +617,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   Navigator.pop(context);
                                 },
                                 child: const Text(
-                                  "Log In",
+                                  "Iniciar Sesión",
                                   style: TextStyle(
                                     fontFamily: "Poppins",
                                     fontSize: 12,
