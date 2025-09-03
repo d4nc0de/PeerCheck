@@ -8,6 +8,7 @@ import '../controller/course_controller.dart';
 import 'add_course_page.dart';
 import 'course_enrollment_page.dart';
 import 'course_enroll_page.dart';
+import 'AddCategoryPage.dart'; // 👈 importamos la página de categorías
 
 enum UserRole { profesor, estudiante }
 
@@ -44,12 +45,10 @@ class _HomePageState extends State<HomePage> {
     final palette = Theme.of(context).extension<RolePalette>()!;
     final bool isProfesor = _role == UserRole.profesor;
 
-    final Color accent = isProfesor
-        ? palette.profesorAccent
-        : palette.estudianteAccent;
-    final Color cardBg = isProfesor
-        ? palette.profesorCard
-        : palette.estudianteCard;
+    final Color accent =
+        isProfesor ? palette.profesorAccent : palette.estudianteAccent;
+    final Color cardBg =
+        isProfesor ? palette.profesorCard : palette.estudianteCard;
     final Color surface = palette.surfaceSoft;
 
     return Scaffold(
@@ -89,14 +88,13 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     "PeerCheck",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w200,
-                      fontSize: 26,
-                    ),
+                          fontWeight: FontWeight.w200,
+                          fontSize: 26,
+                        ),
                   ),
                 ],
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.only(top: 6, bottom: 12),
               child: Text(
@@ -106,7 +104,6 @@ class _HomePageState extends State<HomePage> {
                 ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _RoleSegmented(
@@ -115,14 +112,11 @@ class _HomePageState extends State<HomePage> {
                 estudianteColor: palette.estudianteAccent,
                 onChanged: (r) {
                   setState(() => _role = r);
-                  // Cargar cursos según el nuevo rol
                   courseController.getCoursesByRole(r == UserRole.profesor);
                 },
               ),
             ),
-
             const SizedBox(height: 14),
-
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -142,9 +136,7 @@ class _HomePageState extends State<HomePage> {
                             padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                             children: [
                               for (final course
-                                  in courseController.getCurrentCourses(
-                                    isProfesor,
-                                  )) ...[
+                                  in courseController.getCurrentCourses(isProfesor)) ...[
                                 _ClassCard(
                                   title: course.name,
                                   nrc: course.nrc,
@@ -174,6 +166,11 @@ class _HomePageState extends State<HomePage> {
                                   },
                                   onDismissed: () =>
                                       courseController.deleteCourse(course),
+                                  onCreateCategory: isProfesor
+                                      ? () {
+                                          Get.to(() => const AddCategoryPage());
+                                        }
+                                      : null,
                                 ),
                                 const SizedBox(height: 18),
                               ],
@@ -197,7 +194,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: accent,
@@ -316,6 +312,7 @@ class _ClassCard extends StatelessWidget {
   final Color bg;
   final VoidCallback onTap;
   final VoidCallback onDismissed;
+  final VoidCallback? onCreateCategory; // 👈 agregamos aquí
 
   const _ClassCard({
     required this.title,
@@ -327,6 +324,7 @@ class _ClassCard extends StatelessWidget {
     required this.bg,
     required this.onTap,
     required this.onDismissed,
+    this.onCreateCategory,
   });
 
   @override
@@ -388,6 +386,22 @@ class _ClassCard extends StatelessWidget {
               Text('NRC: $nrc', style: const TextStyle(color: Colors.black54)),
               const SizedBox(height: 4),
               Text(teacher, style: const TextStyle(color: Colors.black54)),
+              // 👇 botón de categoría
+              if (onCreateCategory != null) ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: onCreateCategory,
+                  icon: const Icon(Icons.category),
+                  label: const Text("Crear categoría"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
