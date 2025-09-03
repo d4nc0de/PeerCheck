@@ -53,4 +53,8 @@ class Course {
   String toString() {
     return 'Course{id: $id, name: $name, nrc: $nrc, teacher: $teacher, enrolled: $enrolledCount/$maxStudents}';
   }
+
+  bool isUserEnrolled(String userEmail) {
+    return enrolledUsers.contains(userEmail);
+  }
 }

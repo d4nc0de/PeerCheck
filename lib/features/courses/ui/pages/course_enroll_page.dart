@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:f_clean_template/features/courses/data/datasources/local/local_course_source.dart';
 import '../controller/course_controller.dart';
-import '../../domain/models/course.dart';
 import 'package:f_clean_template/core/app_theme.dart';
 
 class CourseEnrollPage extends StatefulWidget {
@@ -14,25 +14,53 @@ class CourseEnrollPage extends StatefulWidget {
 class _CourseEnrollPageState extends State<CourseEnrollPage> {
   final _formKey = GlobalKey<FormState>();
   final controllerCourseCode = TextEditingController();
-  final CourseController courseController = Get.find();
 
   Future<void> _enrollWithCode() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final currentUserEmail = "estudiante@ejemplo.com";
+        final currentUserEmail = 'estudiante@ejemplo.com';
+        final nrcCode = int.tryParse(controllerCourseCode.text);
 
-        // Obtener todos los cursos (tanto de profesor como de estudiante)
-        await courseController.getTeacherCourses();
-        final teacherCourses = courseController.teacherCourses;
+        if (nrcCode == null) {
+          Get.snackbar(
+            'Error',
+            'Código NRC inválido',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          return;
+        }
 
-        final courseToEnroll = teacherCourses.firstWhere(
-          (course) => course.nrc.toString() == controllerCourseCode.text,
-          orElse: () =>
-              Course(id: '', name: '', nrc: 0, teacher: '', category: ''),
-        );
+        final courseSource = Get.find<LocalCourseSource>();
+        final courseToEnroll = courseSource.findCourseByNrc(nrcCode);
 
-        if (courseToEnroll.name.isNotEmpty) {
+        if (courseToEnroll != null) {
+          if (courseToEnroll.enrolledUsers.contains(currentUserEmail)) {
+            Get.snackbar(
+              'Ya Inscrito',
+              'Ya estás inscrito en este curso: ${courseToEnroll.name}',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.orange,
+              colorText: Colors.white,
+            );
+            return;
+          }
+
+          if (!courseToEnroll.hasAvailableSpots) {
+            Get.snackbar(
+              'Cupo Lleno',
+              'El curso ${courseToEnroll.name} no tiene cupos disponibles',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+            return;
+          }
+
+          final courseController = Get.find<CourseController>();
           courseController.enrollUser(courseToEnroll.id, currentUserEmail);
+
           Get.back();
           Get.snackbar(
             'Inscripción Exitosa',
@@ -44,7 +72,7 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
         } else {
           Get.snackbar(
             'Error',
-            'No se encontró un curso con ese código',
+            'No se encontró un curso con el NRC: $nrcCode',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.red,
             colorText: Colors.white,
@@ -75,15 +103,40 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Ingresa el código del curso',
+                'Ingresa el código NRC del curso',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Pide el código de acceso a tu profesor para inscribirte en el curso',
+                'Pide el código NRC a tu profesor para inscribirte en el curso',
                 style: TextStyle(color: Colors.black54),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Cursos disponibles para prueba:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('• Programación Avanzada - NRC: 12345'),
+                      Text('• Diseño de Interfaces - NRC: 67890'),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Usa estos NRC para probar la inscripción',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               TextFormField(
                 controller: controllerCourseCode,
                 keyboardType: TextInputType.number,
@@ -91,6 +144,7 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
                   labelText: 'Código del Curso (NRC)',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock_outline),
+                  hintText: 'Ej: 12345',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {

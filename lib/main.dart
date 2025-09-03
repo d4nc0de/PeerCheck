@@ -31,7 +31,8 @@ void main() {
   Get.put(AuthenticationController(Get.find()));
 
   // Course
-  Get.put<ICourseSource>(LocalCourseSource());
+  Get.put<LocalCourseSource>(LocalCourseSource());
+  Get.put<ICourseSource>(Get.find<LocalCourseSource>());
   Get.put<ICourseRepository>(CourseRepository(Get.find()));
   Get.put(CourseUseCase(Get.find()));
   Get.lazyPut(() => CourseController());
