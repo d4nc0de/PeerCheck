@@ -16,6 +16,7 @@ dependencies:
   shared_preferences: ^2.5.3
   flex_color_scheme: ^8.3.0
   cupertino_icons: ^1.0.8
+  google_fonts: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -25,6 +26,7 @@ dev_dependencies:
 flutter:
   assets:
       - assets/images/Peertrack_LOGO.png
+      - assets/images/Login_logo.png
   uses-material-design: true
 
 # ESTO DEBE ESTAR FUERA DE LA SECCIÓN FLUTTER:
