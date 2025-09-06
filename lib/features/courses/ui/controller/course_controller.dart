@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
@@ -60,9 +61,32 @@ class CourseController extends GetxController {
     String category,
     int maxStudents,
   ) async {
-    logInfo("CourseController: Add course");
-    await courseUseCase.addCourse(name, nrc, teacher, category, maxStudents);
-    await getTeacherCourses();
+    logInfo("CourseController: Add course - $name (NRC: $nrc)");
+    try {
+      await courseUseCase.addCourse(name, nrc, teacher, category, maxStudents);
+      await getTeacherCourses();
+
+      // Mostrar mensaje de éxito
+      Get.snackbar(
+        "Curso Creado",
+        "El curso '$name' ha sido creado exitosamente",
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF003566),
+        colorText: Colors.white,
+      );
+    } catch (err) {
+      logError("Error adding course: $err");
+      Get.snackbar(
+        "Error",
+        "No se pudo crear el curso: ${err.toString()}",
+        icon: const Icon(Icons.error, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF001D3D),
+        colorText: Colors.white,
+      );
+      rethrow;
+    }
   }
 
   updateCourse(Course course) async {

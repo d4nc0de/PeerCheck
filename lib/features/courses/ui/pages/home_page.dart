@@ -45,10 +45,12 @@ class _HomePageState extends State<HomePage> {
     final palette = Theme.of(context).extension<RolePalette>()!;
     final bool isProfesor = _role == UserRole.profesor;
 
-    final Color accent =
-        isProfesor ? palette.profesorAccent : palette.estudianteAccent;
-    final Color cardBg =
-        isProfesor ? palette.profesorCard : palette.estudianteCard;
+    final Color accent = isProfesor
+        ? palette.profesorAccent
+        : palette.estudianteAccent;
+    final Color cardBg = isProfesor
+        ? palette.profesorCard
+        : palette.estudianteCard;
     final Color surface = palette.surfaceSoft;
 
     return Scaffold(
@@ -88,9 +90,9 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     "PeerCheck",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w200,
-                          fontSize: 26,
-                        ),
+                      fontWeight: FontWeight.w200,
+                      fontSize: 26,
+                    ),
                   ),
                 ],
               ),
@@ -136,10 +138,11 @@ class _HomePageState extends State<HomePage> {
                             padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                             children: [
                               for (final course
-                                  in courseController.getCurrentCourses(isProfesor)) ...[
+                                  in courseController.getCurrentCourses(
+                                    isProfesor,
+                                  )) ...[
                                 _ClassCard(
                                   title: course.name,
-                                  nrc: course.nrc,
                                   teacher: course.teacher,
                                   enrolledCount: course.enrolledCount,
                                   maxStudents: course.maxStudents,
@@ -304,7 +307,6 @@ class _SegmentBtn extends StatelessWidget {
 
 class _ClassCard extends StatelessWidget {
   final String title;
-  final int nrc;
   final String teacher;
   final int enrolledCount;
   final int maxStudents;
@@ -316,7 +318,6 @@ class _ClassCard extends StatelessWidget {
 
   const _ClassCard({
     required this.title,
-    required this.nrc,
     required this.teacher,
     required this.enrolledCount,
     required this.maxStudents,
@@ -383,7 +384,6 @@ class _ClassCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text('NRC: $nrc', style: const TextStyle(color: Colors.black54)),
               const SizedBox(height: 4),
               Text(teacher, style: const TextStyle(color: Colors.black54)),
               // 👇 botón de categoría

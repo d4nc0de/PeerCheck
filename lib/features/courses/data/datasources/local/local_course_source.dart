@@ -54,6 +54,11 @@ class LocalCourseSource implements ICourseSource {
     String category,
     int maxStudents,
   ) async {
+    // Verificar si ya existe un curso con el mismo NRC
+    if (findCourseByNrc(nrc) != null) {
+      throw Exception('Ya existe un curso con el NRC: $nrc');
+    }
+
     final newCourse = Course(
       id: 'course_${DateTime.now().millisecondsSinceEpoch}',
       name: name,
@@ -61,7 +66,9 @@ class LocalCourseSource implements ICourseSource {
       teacher: teacher,
       category: category,
       maxStudents: maxStudents,
+      enrolledUsers: [],
     );
+
     _courses.add(newCourse);
   }
 
