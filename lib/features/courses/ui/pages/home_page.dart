@@ -8,7 +8,8 @@ import '../controller/course_controller.dart';
 import 'add_course_page.dart';
 import 'course_enrollment_page.dart';
 import 'course_enroll_page.dart';
-import 'AddCategoryPage.dart'; // 👈 importamos la página de categorías
+import 'AddCategoryPage.dart';
+import 'package:f_clean_template/features/courses/domain/models/course.dart';
 
 enum UserRole { profesor, estudiante }
 
@@ -36,7 +37,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Cargar cursos según el rol inicial
     courseController.getCoursesByRole(_role == UserRole.profesor);
   }
 
@@ -142,10 +142,8 @@ class _HomePageState extends State<HomePage> {
                                     isProfesor,
                                   )) ...[
                                 _ClassCard(
-                                  title: course.name,
-                                  teacher: course.teacher,
-                                  enrolledCount: course.enrolledCount,
-                                  maxStudents: course.maxStudents,
+                                  course: course,
+                                  isProfesor: isProfesor,
                                   accent: accent,
                                   bg: cardBg,
                                   onTap: () {
@@ -167,8 +165,14 @@ class _HomePageState extends State<HomePage> {
                                       );
                                     }
                                   },
-                                  onDismissed: () =>
-                                      courseController.deleteCourse(course),
+                                  onDismissed: isProfesor
+                                      ? () => courseController.deleteCourse(
+                                          course,
+                                        )
+                                      : () => courseController.unenrollUser(
+                                          course.id,
+                                          'estudiante@ejemplo.com',
+                                        ),
                                   onCreateCategory: isProfesor
                                       ? () {
                                           Get.to(() => const AddCategoryPage());
@@ -306,21 +310,17 @@ class _SegmentBtn extends StatelessWidget {
 }
 
 class _ClassCard extends StatelessWidget {
-  final String title;
-  final String teacher;
-  final int enrolledCount;
-  final int maxStudents;
+  final Course course;
+  final bool isProfesor;
   final Color accent;
   final Color bg;
   final VoidCallback onTap;
   final VoidCallback onDismissed;
-  final VoidCallback? onCreateCategory; // 👈 agregamos aquí
+  final VoidCallback? onCreateCategory;
 
   const _ClassCard({
-    required this.title,
-    required this.teacher,
-    required this.enrolledCount,
-    required this.maxStudents,
+    required this.course,
+    required this.isProfesor,
     required this.accent,
     required this.bg,
     required this.onTap,
@@ -331,13 +331,9 @@ class _ClassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: UniqueKey(),
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 16),
-        child: const Text('Eliminando', style: TextStyle(color: Colors.white)),
-      ),
+      key: Key(course.id),
+      direction: DismissDirection.endToStart,
+      background: _buildDismissibleBackground(isProfesor),
       onDismissed: (_) => onDismissed(),
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -362,7 +358,9 @@ class _ClassCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Badge(
-                    label: Text('$enrolledCount/$maxStudents'),
+                    label: Text(
+                      '${course.enrolledCount}/${course.maxStudents}',
+                    ),
                     backgroundColor: accent,
                   ),
                   Container(
@@ -377,16 +375,17 @@ class _ClassCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                title,
+                course.name,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 8),
-              const SizedBox(height: 4),
-              Text(teacher, style: const TextStyle(color: Colors.black54)),
-              // 👇 botón de categoría
+              Text(
+                course.teacher,
+                style: const TextStyle(color: Colors.black54),
+              ),
               if (onCreateCategory != null) ...[
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
@@ -402,6 +401,41 @@ class _ClassCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDismissibleBackground(bool isProfesor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: isProfesor ? const Color(0xFFB91C1C) : const Color(0xFFD1D5DB),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Icon(
+                isProfesor ? Icons.delete_forever : Icons.exit_to_app,
+                color: Colors.white,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isProfesor ? 'Eliminar' : 'Salir',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),

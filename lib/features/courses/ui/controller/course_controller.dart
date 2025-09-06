@@ -66,10 +66,8 @@ class CourseController extends GetxController {
       await courseUseCase.addCourse(name, nrc, teacher, category, maxStudents);
       await getTeacherCourses();
 
-      // Primero navegar de regreso al HomePage
       Get.back();
 
-      // Luego mostrar el mensaje de éxito en el HomePage
       Future.delayed(const Duration(milliseconds: 300), () {
         Get.snackbar(
           "Curso Creado",
@@ -106,6 +104,15 @@ class CourseController extends GetxController {
     await courseUseCase.deleteCourse(course);
     await getTeacherCourses();
     await getStudentCourses();
+
+    Get.snackbar(
+      "Curso Eliminado",
+      "El curso '${course.name}' ha sido eliminado",
+      icon: const Icon(Icons.delete, color: Colors.white),
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFFB91C1C),
+      colorText: Colors.white,
+    );
   }
 
   void deleteCourses() async {
@@ -129,10 +136,18 @@ class CourseController extends GetxController {
     await courseUseCase.unenrollUser(courseId, userEmail);
     await getTeacherCourses();
     await getStudentCourses();
+
+    Get.snackbar(
+      "Desinscrito",
+      "Te has desinscrito del curso exitosamente",
+      icon: const Icon(Icons.exit_to_app, color: Colors.white),
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFFFFEAA7),
+      colorText: Colors.black,
+    );
   }
 
   List<String> getEnrolledUsers(String courseId) {
-    // Buscar en ambos listados
     final teacherCourse = _teacherCourses.firstWhere(
       (c) => c.id == courseId,
       orElse: () => Course(id: '', name: '', nrc: 0, teacher: '', category: ''),

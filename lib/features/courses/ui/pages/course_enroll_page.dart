@@ -33,8 +33,8 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
             'Error',
             'Código NRC inválido',
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFF001D3D),
-            colorText: Colors.white,
+            backgroundColor: const Color(0xFFFFEAA7),
+            colorText: Colors.black,
           );
           return;
         }
@@ -49,7 +49,7 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
               'Ya estás inscrito en este curso: ${courseToEnroll.name}',
               snackPosition: SnackPosition.BOTTOM,
               backgroundColor: const Color(0xFFFFEAA7),
-              colorText: const Color(0xFF000814),
+              colorText: Colors.black,
             );
             return;
           }
@@ -59,8 +59,8 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
               'Cupo Lleno',
               'El curso ${courseToEnroll.name} no tiene cupos disponibles',
               snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFF001D3D),
-              colorText: Colors.white,
+              backgroundColor: const Color(0xFFFFEAA7),
+              colorText: Colors.black,
             );
             return;
           }
@@ -73,16 +73,16 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
             'Inscripción Exitosa',
             'Te has inscrito al curso: ${courseToEnroll.name}',
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFFFFF3C2),
-            colorText: const Color(0xFF000814),
+            backgroundColor: const Color(0xFFFFEAA7),
+            colorText: Colors.black,
           );
         } else {
           Get.snackbar(
             'Error',
             'No se encontró un curso con el NRC: $nrcCode',
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFFFFD60A),
-            colorText: Colors.white,
+            backgroundColor: const Color(0xFFFFEAA7),
+            colorText: Colors.black,
           );
         }
       } catch (err) {
@@ -91,8 +91,8 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
           err.toString(),
           icon: const Icon(Icons.error, color: Colors.white),
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF001D3D),
-          colorText: Colors.white,
+          backgroundColor: const Color(0xFFFFEAA7),
+          colorText: Colors.black,
         );
       }
     }
@@ -251,7 +251,7 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF000814),
+                          color: Colors.white,
                         ),
                       ),
                     ),
