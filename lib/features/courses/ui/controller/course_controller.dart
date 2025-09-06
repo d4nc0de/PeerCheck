@@ -66,15 +66,21 @@ class CourseController extends GetxController {
       await courseUseCase.addCourse(name, nrc, teacher, category, maxStudents);
       await getTeacherCourses();
 
-      // Mostrar mensaje de éxito
-      Get.snackbar(
-        "Curso Creado",
-        "El curso '$name' ha sido creado exitosamente",
-        icon: const Icon(Icons.check_circle, color: Colors.white),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF003566),
-        colorText: Colors.white,
-      );
+      // Primero navegar de regreso al HomePage
+      Get.back();
+
+      // Luego mostrar el mensaje de éxito en el HomePage
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Get.snackbar(
+          "Curso Creado",
+          "El curso '$name' ha sido creado exitosamente",
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF003566),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      });
     } catch (err) {
       logError("Error adding course: $err");
       Get.snackbar(
