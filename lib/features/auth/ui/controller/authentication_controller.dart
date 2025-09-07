@@ -1,39 +1,43 @@
 import 'package:get/get.dart';
-
-import 'package:loggy/loggy.dart';
-
-import '../../domain/use_case/authentication_usecase.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/auth/domain/use_case/authentication_usecase.dart';
 
 class AuthenticationController extends GetxController {
-  final AuthenticationUseCase authentication;
-  final logged = false.obs;
+  final AuthenticationUseCase useCase;
 
-  AuthenticationController(this.authentication);
+  AuthenticationController(this.useCase);
 
-  @override
-  Future<void> onInit() async {
-    super.onInit();
-    logInfo('AuthenticationController initialized');
+  final Rxn<AuthenticationUser> currentUser = Rxn<AuthenticationUser>();
+  final RxBool isLoading = false.obs;
+
+  bool get isLogged => currentUser.value != null;
+
+  Future<void> login(String email, String password) async {
+    try {
+      isLoading.value = true;
+      final user = await useCase.login(email, password);
+      currentUser.value = user;
+    } catch (e) {
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  bool get isLogged => logged.value;
-
-  Future<bool> login(email, password) async {
-    logInfo('AuthenticationController: Login $email $password');
-    var rta = await authentication.login(email, password);
-    logged.value = rta;
-    return rta;
-  }
-
-  Future<bool> signUp(email, password) async {
-    logInfo('AuthenticationController: Sign Up $email $password');
-    await authentication.signUp(email, password);
-    return true;
+  Future<void> signup(String name, String email, String password) async {
+    try {
+      isLoading.value = true;
+      final user = await useCase.signup(name, email, password);
+      currentUser.value = user;
+    } catch (e) {
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> logOut() async {
-    logInfo('AuthenticationController: Log Out');
-    await authentication.logOut();
-    logged.value = false;
+    await useCase.logout();
+    currentUser.value = null;
   }
 }

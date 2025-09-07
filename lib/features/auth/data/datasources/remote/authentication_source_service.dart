@@ -1,65 +1,56 @@
-import 'package:loggy/loggy.dart';
-import 'package:http/http.dart' as http;
-import '../../../domain/models/authentication_user.dart';
-import 'i_authentication_source.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/auth/data/datasources/remote/i_authentication_source.dart';
 
 class AuthenticationSourceService implements IAuthenticationSource {
-  final http.Client httpClient;
-
-  AuthenticationSourceService({http.Client? client})
-    : httpClient = client ?? http.Client();
+  final List<AuthenticationUser> _users = [];
+  AuthenticationUser? _currentUser;
 
   @override
-  Future<bool> login(AuthenticationUser user) async {
-    logInfo("Attempting login for email: ${user.email}");
-    return Future.value(true);
+  Future<AuthenticationUser> login(String email, String password) async {
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    // in case of error
-    // return Future.error('Login failed');
+    final user = _users.firstWhere(
+      (u) => u.email == email && u.password == password,
+      orElse: () => throw Exception("Credenciales inválidas"),
+    );
+
+    _currentUser = user;
+    return user;
   }
 
   @override
-  Future<bool> signUp(AuthenticationUser user) async {
-    logInfo("Attempting sign up for email: ${user.email}");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> logOut() async {
-    logInfo("Attempting logout");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> validate(String email, String validationCode) async {
-    logInfo("Attempting email validation for email: $email");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> refreshToken() async {
-    logInfo("Attempting token refresh");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> forgotPassword(String email) async {
-    logInfo("Attempting password reset for email: $email");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> resetPassword(
+  Future<AuthenticationUser> signup(
+    String name,
     String email,
-    String newPassword,
-    String validationCode,
+    String password,
   ) async {
-    return Future.value(true);
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final exists = _users.any((u) => u.email == email);
+    if (exists) {
+      throw Exception("El correo ya está registrado");
+    }
+
+    final newUser = AuthenticationUser.create(
+      name: name,
+      email: email,
+      password: password,
+    );
+
+    _users.add(newUser);
+    _currentUser = newUser;
+
+    return newUser;
   }
 
   @override
-  Future<bool> verifyToken() async {
-    logInfo("Attempting token verification");
-    return Future.value(true);
+  Future<void> logout() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _currentUser = null;
+  }
+
+  @override
+  AuthenticationUser? getCurrentUser() {
+    return _currentUser;
   }
 }

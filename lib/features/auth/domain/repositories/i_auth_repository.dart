@@ -1,15 +1,8 @@
-import '../models/authentication_user.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 
 abstract class IAuthRepository {
-  Future<bool> login(AuthenticationUser user);
-
-  Future<bool> signUp(AuthenticationUser user);
-
-  Future<bool> logOut();
-
-  Future<bool> validate(String email, String validationCode);
-
-  Future<bool> validateToken();
-
-  Future<void> forgotPassword(String email);
+  Future<AuthenticationUser> login(String email, String password);
+  Future<AuthenticationUser> signup(String name, String email, String password);
+  Future<void> logout();
+  AuthenticationUser? getCurrentUser();
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
-import '../controller/authentication_controller.dart';
+import 'package:f_clean_template/features/auth/ui/controller/authentication_controller.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -17,7 +17,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final controllerEmail = TextEditingController();
   final controllerPassword = TextEditingController();
   final controllerConfirmPassword = TextEditingController();
-  
+
   AuthenticationController authenticationController = Get.find();
 
   bool _obscurePassword = true;
@@ -29,12 +29,12 @@ class _SignUpPageState extends State<SignUpPage> {
     if (value == null || value.isEmpty) {
       return "Correo electrónico es obligatorio";
     }
-    
+
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return "Ingrese un correo electrónico válido";
     }
-    
+
     return null;
   }
 
@@ -43,11 +43,11 @@ class _SignUpPageState extends State<SignUpPage> {
     if (value == null || value.isEmpty) {
       return "Contraseña es obligatoria";
     }
-    
+
     if (value.length < 6) {
       return "La contraseña debe tener al menos 6 caracteres";
     }
-    
+
     return null;
   }
 
@@ -56,17 +56,23 @@ class _SignUpPageState extends State<SignUpPage> {
     if (value == null || value.isEmpty) {
       return "Por favor confirme su contraseña";
     }
-    
+
     if (value != controllerPassword.text) {
       return "Las contraseñas no coinciden";
     }
-    
+
     return null;
   }
 
-  _signup(theEmail, thePassword) async {
+  Future<void> _signup(
+    String firstName,
+    String lastName,
+    String theEmail,
+    String thePassword,
+  ) async {
     try {
-      await authenticationController.signUp(theEmail, thePassword);
+      final fullName = '${firstName.trim()} ${lastName.trim()}'.trim();
+      await authenticationController.signup(fullName, theEmail, thePassword);
 
       Get.snackbar(
         "Crear cuenta",
@@ -74,6 +80,9 @@ class _SignUpPageState extends State<SignUpPage> {
         icon: const Icon(Icons.check_circle, color: Colors.green),
         snackPosition: SnackPosition.BOTTOM,
       );
+
+      // Si deseas regresar al login automáticamente, descomenta:
+      // Get.back();
     } catch (err) {
       logError('SignUp error $err');
       Get.snackbar(
@@ -154,7 +163,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 20),
-                          
+
                           // First name field
                           const Text(
                             "Nombre",
@@ -192,22 +201,30 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                focusedBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Color(0xFF026CD2),
                                     width: 2,
                                   ),
                                 ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                errorBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Colors.red,
                                     width: 1,
                                   ),
@@ -263,22 +280,30 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                focusedBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Color(0xFF026CD2),
                                     width: 2,
                                   ),
                                 ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                errorBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Colors.red,
                                     width: 1,
                                   ),
@@ -334,22 +359,30 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                focusedBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Color(0xFF026CD2),
                                     width: 2,
                                   ),
                                 ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                errorBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Colors.red,
                                     width: 1,
                                   ),
@@ -397,22 +430,30 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                focusedBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Color(0xFF026CD2),
                                     width: 2,
                                   ),
                                 ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                errorBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Colors.red,
                                     width: 1,
                                   ),
@@ -474,22 +515,30 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                focusedBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Color(0xFF026CD2),
                                     width: 2,
                                   ),
                                 ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+                                errorBorder: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                  borderSide: BorderSide(
                                     color: Colors.red,
                                     width: 1,
                                   ),
@@ -504,7 +553,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                                      _obscureConfirmPassword =
+                                          !_obscureConfirmPassword;
                                     });
                                   },
                                 ),
@@ -554,7 +604,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             decoration: BoxDecoration(
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF026CD2).withValues(alpha: 0.3),
+                                  color: const Color(
+                                    0xFF026CD2,
+                                  ).withValues(alpha: 0.3),
                                   blurRadius: 15,
                                   offset: const Offset(0, 8),
                                 ),
@@ -574,7 +626,10 @@ class _SignUpPageState extends State<SignUpPage> {
                                   Get.snackbar(
                                     "Términos y Condiciones",
                                     "Debe aceptar los términos y condiciones para continuar",
-                                    icon: const Icon(Icons.warning, color: Colors.orange),
+                                    icon: const Icon(
+                                      Icons.warning,
+                                      color: Colors.orange,
+                                    ),
                                     snackPosition: SnackPosition.BOTTOM,
                                   );
                                   return;
@@ -582,6 +637,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
                                 if (_formKey.currentState!.validate()) {
                                   await _signup(
+                                    controllerFirstName.text,
+                                    controllerLastName.text,
                                     controllerEmail.text,
                                     controllerPassword.text,
                                   );
