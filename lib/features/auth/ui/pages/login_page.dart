@@ -18,13 +18,13 @@ class _LoginPageState extends State<LoginPage> {
   AuthenticationController authenticationController = Get.find();
 
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   _login(theEmail, thePassword) async {
     logInfo('_login $theEmail $thePassword');
     try {
       await authenticationController.login(theEmail, thePassword);
     } catch (err) {
-      // Simulación de errores comunes (se reemplaza cuando se conecte con backend/Firebase)
       String errorMessage = "Ocurrió un error inesperado";
 
       if (err.toString().contains("user-not-found")) {
@@ -42,6 +42,23 @@ class _LoginPageState extends State<LoginPage> {
         snackPosition: SnackPosition.BOTTOM,
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Cargar credenciales recordadas
+    authenticationController.loadRememberedCredentials().then((_) {
+      if (authenticationController.rememberMe.value) {
+        setState(() {
+          _rememberMe = true;
+          controllerEmail.text = authenticationController.rememberedEmail ?? "";
+          controllerPassword.text =
+              authenticationController.rememberedPassword ?? "";
+        });
+      }
+    });
   }
 
   @override
@@ -68,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
 
-            //formulario
+            // Formulario
             Expanded(
               child: Container(
                 width: screenWidth,
@@ -120,13 +137,15 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -178,13 +197,15 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -218,7 +239,32 @@ class _LoginPageState extends State<LoginPage> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 30),
+                          const SizedBox(height: 20),
+
+                          // 🔹 Checkbox recordar credenciales
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _rememberMe,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _rememberMe = value ?? false;
+                                  });
+                                  authenticationController.rememberMe.value =
+                                      _rememberMe;
+                                },
+                              ),
+                              const Text(
+                                "Recordar mis credenciales",
+                                style: TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontSize: 12,
+                                  color: Color(0xFF858597),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
 
                           // Botón de login
                           SizedBox(

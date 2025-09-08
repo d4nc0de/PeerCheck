@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 import 'package:f_clean_template/features/auth/domain/use_case/authentication_usecase.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationController extends GetxController {
   final AuthenticationUseCase useCase;
@@ -17,6 +18,12 @@ class AuthenticationController extends GetxController {
       isLoading.value = true;
       final user = await useCase.login(email, password);
       currentUser.value = user;
+
+      if (rememberMe.value) {
+        await saveRememberedCredentials(email, password);
+      } else {
+        await clearRememberedCredentials();
+      }
     } catch (e) {
       rethrow;
     } finally {
@@ -39,5 +46,35 @@ class AuthenticationController extends GetxController {
   Future<void> logOut() async {
     await useCase.logout();
     currentUser.value = null;
+  }
+
+  // 🔹 Remember me
+  final RxBool rememberMe = false.obs;
+  String? rememberedEmail;
+  String? rememberedPassword;
+
+  Future<void> saveRememberedCredentials(String email, String password) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("remember_me", true);
+    await prefs.setString("remembered_email", email);
+    await prefs.setString("remembered_password", password);
+  }
+
+  Future<void> clearRememberedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("remember_me");
+    await prefs.remove("remembered_email");
+    await prefs.remove("remembered_password");
+  }
+
+  Future<void> loadRememberedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final remember = prefs.getBool("remember_me") ?? false;
+
+    if (remember) {
+      rememberedEmail = prefs.getString("remembered_email");
+      rememberedPassword = prefs.getString("remembered_password");
+      rememberMe.value = true;
+    }
   }
 }
