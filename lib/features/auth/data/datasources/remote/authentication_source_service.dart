@@ -2,7 +2,26 @@ import 'package:f_clean_template/features/auth/domain/models/authentication_user
 import 'package:f_clean_template/features/auth/data/datasources/remote/i_authentication_source.dart';
 
 class AuthenticationSourceService implements IAuthenticationSource {
-  final List<AuthenticationUser> _users = [];
+  final List<AuthenticationUser> _users = [
+    AuthenticationUser(
+      id: 'user_a',
+      name: 'Andrés Pérez',
+      email: 'a@a.com',
+      password: '123456',
+    ),
+    AuthenticationUser(
+      id: 'user_b',
+      name: 'Beatriz López',
+      email: 'b@a.com',
+      password: '123456',
+    ),
+    AuthenticationUser(
+      id: 'user_c',
+      name: 'Carlos Gómez',
+      email: 'c@a.com',
+      password: '123456',
+    ),
+  ];
   AuthenticationUser? _currentUser;
 
   @override

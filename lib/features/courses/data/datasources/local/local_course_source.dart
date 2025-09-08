@@ -22,6 +22,15 @@ class LocalCourseSource implements ICourseSource {
       maxStudents: 35,
       enrolledUsers: [],
     ),
+    Course(
+      id: 'default_course_003',
+      name: 'curso1',
+      nrc: 11111,
+      teacher: 'a@a.com', // profesor
+      category: 'General',
+      maxStudents: 30,
+      enrolledUsers: ['b@a.com'], // estudiante
+    ),
   ];
 
   // Mapa de profesor → lista de cursos creados
@@ -38,7 +47,15 @@ class LocalCourseSource implements ICourseSource {
 
   @override
   Future<List<Course>> getTeacherCourses(String teacherEmail) async {
-    return _teacherCourses[teacherEmail] ?? [];
+    // Buscar en cursos por defecto y en los creados
+    final allCourses = [
+      ..._defaultCourses,
+      for (final courses in _teacherCourses.values) ...courses,
+    ];
+
+    return allCourses
+        .where((course) => course.teacher == teacherEmail)
+        .toList();
   }
 
   @override
