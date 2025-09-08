@@ -26,8 +26,10 @@ class CourseController extends GetxController {
   getCourses() async {
     logInfo("CourseController: Getting all courses");
     isLoading.value = true;
-    _teacherCourses.value = await courseUseCase.getTeacherCourses();
     final user = authController.currentUser.value;
+    if (user != null) {
+      _teacherCourses.value = await courseUseCase.getTeacherCourses(user.email);
+    }
     if (user != null) {
       _studentCourses.value = await courseUseCase.getStudentCourses(user.email);
     }
@@ -37,7 +39,10 @@ class CourseController extends GetxController {
   getTeacherCourses() async {
     logInfo("CourseController: Getting teacher courses");
     isLoading.value = true;
-    _teacherCourses.value = await courseUseCase.getTeacherCourses();
+    final user = authController.currentUser.value;
+    if (user != null) {
+      _teacherCourses.value = await courseUseCase.getTeacherCourses(user.email);
+    }
     isLoading.value = false;
   }
 
@@ -61,7 +66,12 @@ class CourseController extends GetxController {
 
     final user = authController.currentUser.value;
     if (isTeacher) {
-      _teacherCourses.value = await courseUseCase.getTeacherCourses();
+      final user = authController.currentUser.value;
+      if (user != null) {
+        _teacherCourses.value = await courseUseCase.getTeacherCourses(
+          user.email,
+        );
+      }
     } else if (user != null) {
       _studentCourses.value = await courseUseCase.getCoursesByRole(
         false,
