@@ -4,8 +4,7 @@ class AuthenticationUser {
   final String id;
   final String name;
   final String email;
-  final String
-  password; // ⚠️ solo para mock, en real nunca guardes la password en claro
+  final String password;
 
   AuthenticationUser({
     required this.id,
@@ -26,4 +25,21 @@ class AuthenticationUser {
       password: password,
     );
   }
+
+  // ➕ Serialización
+  factory AuthenticationUser.fromJson(Map<String, dynamic> json) {
+    return AuthenticationUser(
+      id: json["id"],
+      name: json["name"],
+      email: json["email"],
+      password: json["password"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+    "email": email,
+    "password": password,
+  };
 }

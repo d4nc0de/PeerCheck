@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:f_clean_template/features/courses/domain/models/course.dart';
 import 'package:f_clean_template/features/courses/data/datasources/i_course_source.dart';
 
 class LocalCourseSource implements ICourseSource {
-  // Cursos predeterminados (visibles para todos)
+  static const String _coursesKey = "courses_data";
+
   final List<Course> _defaultCourses = [
     Course(
       id: 'default_course_001',
@@ -26,51 +29,53 @@ class LocalCourseSource implements ICourseSource {
       id: 'default_course_003',
       name: 'curso1',
       nrc: 11111,
-      teacher: 'a@a.com', // profesor
+      teacher: 'a@a.com',
       category: 'General',
       maxStudents: 30,
-      enrolledUsers: ['b@a.com'], // estudiante
+      enrolledUsers: ['b@a.com'],
     ),
   ];
 
-  // Mapa de profesor → lista de cursos creados
-  final Map<String, List<Course>> _teacherCourses = {};
+  List<Course> _courses = [];
+
+  LocalCourseSource() {
+    _loadFromPrefs();
+  }
+
+  Future<void> _loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getStringList(_coursesKey) ?? [];
+
+    _courses = stored.map((e) => Course.fromJson(jsonDecode(e))).toList();
+
+    // Si es primera vez, guardamos cursos por defecto
+    if (_courses.isEmpty) {
+      _courses = [..._defaultCourses];
+      await _saveCourses();
+    }
+  }
+
+  Future<void> _saveCourses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = _courses.map((c) => jsonEncode(c.toJson())).toList();
+    await prefs.setStringList(_coursesKey, data);
+  }
 
   @override
   Future<List<Course>> getCourses() async {
-    // Todos los cursos (default + creados por profes)
-    return [
-      ..._defaultCourses,
-      for (final courses in _teacherCourses.values) ...courses,
-    ];
+    return _courses;
   }
 
   @override
   Future<List<Course>> getTeacherCourses(String teacherEmail) async {
-    // Buscar en cursos por defecto y en los creados
-    final allCourses = [
-      ..._defaultCourses,
-      for (final courses in _teacherCourses.values) ...courses,
-    ];
-
-    return allCourses
-        .where((course) => course.teacher == teacherEmail)
-        .toList();
+    return _courses.where((c) => c.teacher == teacherEmail).toList();
   }
 
   @override
   Future<List<Course>> getStudentCourses(String userEmail) async {
-    final allCourses = [
-      ..._defaultCourses,
-      for (final courses in _teacherCourses.values) ...courses,
-    ];
-
-    return allCourses
+    return _courses
         .where(
-          (course) =>
-              course.enrolledUsers.contains(userEmail) &&
-              course.teacher !=
-                  userEmail, // 🚫 no puede ser estudiante en su propio curso
+          (c) => c.enrolledUsers.contains(userEmail) && c.teacher != userEmail,
         )
         .toList();
   }
@@ -83,7 +88,6 @@ class LocalCourseSource implements ICourseSource {
     String category,
     int maxStudents,
   ) async {
-    // Evitar duplicados por NRC
     if (findCourseByNrc(nrc) != null) {
       throw Exception('Ya existe un curso con el NRC: $nrc');
     }
@@ -98,56 +102,54 @@ class LocalCourseSource implements ICourseSource {
       enrolledUsers: [],
     );
 
-    _teacherCourses.putIfAbsent(teacher, () => []);
-    _teacherCourses[teacher]!.add(newCourse);
+    _courses.add(newCourse);
+    await _saveCourses();
   }
 
   @override
   Future<void> updateCourse(Course updatedCourse) async {
-    // Buscar entre cursos de todos los profes
-    for (final entry in _teacherCourses.entries) {
-      final index = entry.value.indexWhere(
-        (course) => course.id == updatedCourse.id,
-      );
-      if (index != -1) {
-        entry.value[index] = updatedCourse;
-        return;
-      }
+    final index = _courses.indexWhere((c) => c.id == updatedCourse.id);
+    if (index != -1) {
+      _courses[index] = updatedCourse;
+      await _saveCourses();
     }
   }
 
   @override
   Future<void> deleteCourse(Course courseToDelete) async {
-    for (final entry in _teacherCourses.entries) {
-      entry.value.removeWhere((course) => course.id == courseToDelete.id);
-    }
+    _courses.removeWhere((c) => c.id == courseToDelete.id);
+    await _saveCourses();
   }
 
   @override
   Future<void> deleteCourses() async {
-    _teacherCourses.clear();
-    // Los cursos default no se eliminan
+    _courses.clear();
+    await _saveCourses();
   }
 
   @override
   Future<void> enrollUser(String courseId, String userEmail) async {
-    final course = await _findCourseById(courseId);
-    if (course == null) return;
+    final course = _courses.firstWhere(
+      (c) => c.id == courseId,
+      orElse: () => throw Exception("Curso no encontrado"),
+    );
 
-    // 🚫 no permitir inscribirse si es el profesor del curso
     if (course.teacher == userEmail) return;
-
     if (!course.enrolledUsers.contains(userEmail) && course.hasAvailableSpots) {
       course.enrolledUsers.add(userEmail);
+      await _saveCourses();
     }
   }
 
   @override
   Future<void> unenrollUser(String courseId, String userEmail) async {
-    final course = await _findCourseById(courseId);
-    if (course == null) return;
+    final course = _courses.firstWhere(
+      (c) => c.id == courseId,
+      orElse: () => throw Exception("Curso no encontrado"),
+    );
 
     course.enrolledUsers.remove(userEmail);
+    await _saveCourses();
   }
 
   @override
@@ -161,24 +163,8 @@ class LocalCourseSource implements ICourseSource {
   }
 
   Course? findCourseByNrc(int nrc) {
-    final allCourses = [
-      ..._defaultCourses,
-      for (final courses in _teacherCourses.values) ...courses,
-    ];
     try {
-      return allCourses.firstWhere((course) => course.nrc == nrc);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<Course?> _findCourseById(String courseId) async {
-    final allCourses = [
-      ..._defaultCourses,
-      for (final courses in _teacherCourses.values) ...courses,
-    ];
-    try {
-      return allCourses.firstWhere((course) => course.id == courseId);
+      return _courses.firstWhere((c) => c.nrc == nrc);
     } catch (e) {
       return null;
     }
