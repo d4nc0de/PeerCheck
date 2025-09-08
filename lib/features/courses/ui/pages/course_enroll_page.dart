@@ -66,7 +66,7 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
           }
 
           final courseController = Get.find<CourseController>();
-          courseController.enrollUser(courseToEnroll.id, currentUserEmail);
+          courseController.enrollUser(courseToEnroll.id);
 
           Get.back();
           Get.snackbar(

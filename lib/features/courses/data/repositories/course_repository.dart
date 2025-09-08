@@ -18,13 +18,16 @@ class CourseRepository implements ICourseRepository {
   }
 
   @override
-  Future<List<Course>> getStudentCourses() async {
-    return await courseSource.getStudentCourses();
+  Future<List<Course>> getStudentCourses(String userEmail) async {
+    return await courseSource.getStudentCourses(userEmail);
   }
 
   @override
-  Future<List<Course>> getCoursesByRole(bool isTeacher) async {
-    return await courseSource.getCoursesByRole(isTeacher);
+  Future<List<Course>> getCoursesByRole(
+    bool isTeacher,
+    String userEmail,
+  ) async {
+    return await courseSource.getCoursesByRole(isTeacher, userEmail);
   }
 
   @override

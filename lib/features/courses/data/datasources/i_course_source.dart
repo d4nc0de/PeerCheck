@@ -3,8 +3,8 @@ import 'package:f_clean_template/features/courses/domain/models/course.dart';
 abstract class ICourseSource {
   Future<List<Course>> getCourses();
   Future<List<Course>> getTeacherCourses();
-  Future<List<Course>> getStudentCourses();
-  Future<List<Course>> getCoursesByRole(bool isTeacher);
+  Future<List<Course>> getStudentCourses(String userEmail);
+  Future<List<Course>> getCoursesByRole(bool isTeacher, String userEmail);
   Future<void> addCourse(
     String name,
     int nrc,

@@ -171,7 +171,6 @@ class _HomePageState extends State<HomePage> {
                                         )
                                       : () => courseController.unenrollUser(
                                           course.id,
-                                          'estudiante@ejemplo.com',
                                         ),
                                   onCreateCategory: isProfesor
                                       ? () {

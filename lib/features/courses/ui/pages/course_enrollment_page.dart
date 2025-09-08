@@ -95,10 +95,7 @@ class CourseEnrollmentPage extends StatelessWidget {
                                   color: Colors.red,
                                 ),
                                 onPressed: () {
-                                  courseController.unenrollUser(
-                                    courseId,
-                                    userEmail,
-                                  );
+                                  courseController.unenrollUser(courseId);
                                 },
                               )
                             : null,

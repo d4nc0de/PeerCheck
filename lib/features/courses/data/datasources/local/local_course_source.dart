@@ -38,11 +38,9 @@ class LocalCourseSource implements ICourseSource {
   }
 
   @override
-  Future<List<Course>> getStudentCourses() async {
+  Future<List<Course>> getStudentCourses(String userEmail) async {
     return _courses
-        .where(
-          (course) => course.enrolledUsers.contains('estudiante@ejemplo.com'),
-        )
+        .where((course) => course.enrolledUsers.contains(userEmail))
         .toList();
   }
 
@@ -111,8 +109,13 @@ class LocalCourseSource implements ICourseSource {
   }
 
   @override
-  Future<List<Course>> getCoursesByRole(bool isTeacher) async {
-    return isTeacher ? await getTeacherCourses() : await getStudentCourses();
+  Future<List<Course>> getCoursesByRole(
+    bool isTeacher,
+    String userEmail,
+  ) async {
+    return isTeacher
+        ? await getTeacherCourses()
+        : await getStudentCourses(userEmail);
   }
 
   Course? findCourseByNrc(int nrc) {

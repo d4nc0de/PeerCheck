@@ -243,7 +243,6 @@ class _AddCoursePageState extends State<AddCoursePage> {
                             await courseController.addCourse(
                               controllerName.text.trim(),
                               int.parse(controllerNrc.text),
-                              teacherName,
                               'General',
                               int.parse(controllerMaxStudents.text),
                             );

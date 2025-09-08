@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
-import '../../domain/models/course.dart';
-import '../../domain/use_case/course_usecase.dart';
+import 'package:f_clean_template/features/courses/domain/models/course.dart';
+import 'package:f_clean_template/features/courses/domain/use_case/course_usecase.dart';
+import 'package:f_clean_template/features/auth/ui/controller/authentication_controller.dart';
 
 class CourseController extends GetxController {
   final RxList<Course> _teacherCourses = <Course>[].obs;
   final RxList<Course> _studentCourses = <Course>[].obs;
   final CourseUseCase courseUseCase = Get.find();
+  final AuthenticationController authController = Get.find();
   final RxBool isLoading = false.obs;
 
   List<Course> get teacherCourses => _teacherCourses;
@@ -25,7 +27,10 @@ class CourseController extends GetxController {
     logInfo("CourseController: Getting all courses");
     isLoading.value = true;
     _teacherCourses.value = await courseUseCase.getTeacherCourses();
-    _studentCourses.value = await courseUseCase.getStudentCourses();
+    final user = authController.currentUser.value;
+    if (user != null) {
+      _studentCourses.value = await courseUseCase.getStudentCourses(user.email);
+    }
     isLoading.value = false;
   }
 
@@ -39,31 +44,61 @@ class CourseController extends GetxController {
   getStudentCourses() async {
     logInfo("CourseController: Getting student courses");
     isLoading.value = true;
-    _studentCourses.value = await courseUseCase.getStudentCourses();
+
+    final user = authController.currentUser.value;
+    if (user != null) {
+      _studentCourses.value = await courseUseCase.getStudentCourses(user.email);
+    } else {
+      _studentCourses.clear();
+    }
+
     isLoading.value = false;
   }
 
   getCoursesByRole(bool isTeacher) async {
     logInfo("CourseController: Getting courses by role: $isTeacher");
     isLoading.value = true;
+
+    final user = authController.currentUser.value;
     if (isTeacher) {
       _teacherCourses.value = await courseUseCase.getTeacherCourses();
+    } else if (user != null) {
+      _studentCourses.value = await courseUseCase.getCoursesByRole(
+        false,
+        user.email,
+      );
     } else {
-      _studentCourses.value = await courseUseCase.getStudentCourses();
+      _studentCourses.clear();
     }
+
     isLoading.value = false;
   }
 
-  addCourse(
-    String name,
-    int nrc,
-    String teacher,
-    String category,
-    int maxStudents,
-  ) async {
-    logInfo("CourseController: Add course - $name (NRC: $nrc)");
+  addCourse(String name, int nrc, String category, int maxStudents) async {
+    final user = authController.currentUser.value;
+    if (user == null) {
+      Get.snackbar(
+        "Error",
+        "Debes estar autenticado para crear un curso",
+        icon: const Icon(Icons.error, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF001D3D),
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    logInfo(
+      "CourseController: Add course - $name (NRC: $nrc) by ${user.email}",
+    );
     try {
-      await courseUseCase.addCourse(name, nrc, teacher, category, maxStudents);
+      await courseUseCase.addCourse(
+        name,
+        nrc,
+        user.email,
+        category,
+        maxStudents,
+      );
       await getTeacherCourses();
 
       Get.back();
@@ -124,16 +159,44 @@ class CourseController extends GetxController {
     isLoading.value = false;
   }
 
-  void enrollUser(String courseId, String userEmail) async {
-    logInfo("CourseController: Enroll user $userEmail in course $courseId");
-    await courseUseCase.enrollUser(courseId, userEmail);
+  void enrollUser(String courseId) async {
+    final user = authController.currentUser.value;
+    if (user == null) {
+      Get.snackbar(
+        "Error",
+        "Debes estar autenticado para inscribirte en un curso",
+        icon: const Icon(Icons.error, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF001D3D),
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    logInfo("CourseController: Enroll user ${user.email} in course $courseId");
+    await courseUseCase.enrollUser(courseId, user.email);
     await getTeacherCourses();
     await getStudentCourses();
   }
 
-  void unenrollUser(String courseId, String userEmail) async {
-    logInfo("CourseController: Unenroll user $userEmail from course $courseId");
-    await courseUseCase.unenrollUser(courseId, userEmail);
+  void unenrollUser(String courseId) async {
+    final user = authController.currentUser.value;
+    if (user == null) {
+      Get.snackbar(
+        "Error",
+        "Debes estar autenticado para desinscribirte de un curso",
+        icon: const Icon(Icons.error, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF001D3D),
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    logInfo(
+      "CourseController: Unenroll user ${user.email} from course $courseId",
+    );
+    await courseUseCase.unenrollUser(courseId, user.email);
     await getTeacherCourses();
     await getStudentCourses();
 
