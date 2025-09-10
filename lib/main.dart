@@ -18,6 +18,11 @@ import 'features/courses/data/repositories/course_repository.dart';
 import 'features/courses/domain/repositories/i_course_repository.dart';
 import 'features/courses/domain/use_case/course_usecase.dart';
 import 'features/courses/ui/controller/course_controller.dart';
+import 'features/categories/ui/controller/category_controller.dart';
+
+
+// 🔹 importa tu controlador de categorías
+import 'features/categories/ui/controller/category_controller.dart';
 
 void main() {
   Loggy.initLoggy(logPrinter: const PrettyPrinter(showColors: true));
@@ -37,6 +42,9 @@ void main() {
   Get.put(CourseUseCase(Get.find()));
   Get.lazyPut(() => CourseController());
 
+  // 🔹 Category (se registra al inicio para evitar el error)
+  Get.put(CategoryController());
+
   runApp(const MyApp());
 }
 
@@ -54,3 +62,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

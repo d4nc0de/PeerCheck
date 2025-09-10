@@ -8,7 +8,12 @@ import '../controller/course_controller.dart';
 import 'add_course_page.dart';
 import 'course_enrollment_page.dart';
 import 'course_enroll_page.dart';
+<<<<<<< Updated upstream
 import 'AddCategoryPage.dart'; // 👈 importamos la página de categorías
+=======
+import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
+import 'package:f_clean_template/features/courses/domain/models/course.dart';
+>>>>>>> Stashed changes
 
 enum UserRole { profesor, estudiante }
 
