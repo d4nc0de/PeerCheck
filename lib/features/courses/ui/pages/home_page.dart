@@ -1,4 +1,5 @@
 import 'package:f_clean_template/core/app_theme.dart';
+import 'package:f_clean_template/features/courses/ui/pages/course_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
@@ -156,13 +157,11 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       );
                                     } else {
-                                      Get.to(
-                                        () => CourseEnrollmentPage(
-                                          courseId: course.id,
-                                          courseName: course.name,
-                                          isStudentView: true,
-                                        ),
-                                      );
+                                      Get.to(() => CourseDetailPage(
+                                        courseId: course.id,
+                                        courseName: course.name,
+                                        teacherEmail: course.teacher,
+                                      ),);
                                     }
                                   },
                                   onDismissed: isProfesor
