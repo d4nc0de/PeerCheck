@@ -15,10 +15,14 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final controllerEmail = TextEditingController();
   final controllerPassword = TextEditingController();
+  final controllerEmail = TextEditingController();
+  final controllerPassword = TextEditingController();
   AuthenticationController authenticationController = Get.find();
 
   bool _obscurePassword = true;
   bool _rememberMe = false;
+
+  bool _obscurePassword = true;
 
   _login(theEmail, thePassword) async {
     logInfo('_login $theEmail $thePassword');

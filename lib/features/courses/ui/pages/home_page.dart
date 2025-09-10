@@ -324,6 +324,7 @@ class _ClassCard extends StatelessWidget {
     required this.onTap,
     required this.onDismissed,
     this.onCreateCategory,
+    this.onCreateCategory,
   });
 
   @override
