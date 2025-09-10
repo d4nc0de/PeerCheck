@@ -9,7 +9,7 @@ import 'add_course_page.dart';
 import 'course_enrollment_page.dart';
 import 'course_enroll_page.dart';
 import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
-import 'package:f_clean_template/features/courses/domain/models/course.dart';
+//import 'package:f_clean_template/features/courses/domain/models/course.dart';
 
 enum UserRole { profesor, estudiante }
 

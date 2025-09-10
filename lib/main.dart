@@ -22,7 +22,7 @@ import 'features/categories/ui/controller/category_controller.dart';
 
 
 // 🔹 importa tu controlador de categorías
-import 'features/categories/ui/controller/category_controller.dart';
+//import 'features/categories/ui/controller/category_controller.dart';
 
 void main() {
   Loggy.initLoggy(logPrinter: const PrettyPrinter(showColors: true));
