@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/category_controller.dart';
-import 'categoryListPage.dart';
+import 'CategoryListPage.dart';
 
 class AddCategoryPage extends StatefulWidget {
   const AddCategoryPage({super.key});
@@ -11,10 +11,9 @@ class AddCategoryPage extends StatefulWidget {
 }
 
 class _AddCategoryPageState extends State<AddCategoryPage> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController groupSizeController = TextEditingController();
+  final nameController = TextEditingController();
+  final groupSizeController = TextEditingController();
 
-  // 👇 nombre de la variable corregido
   String method = "Random";
 
   @override
@@ -27,29 +26,37 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: "Nombre"),
+              decoration: const InputDecoration(
+                labelText: "Nombre de la categoría",
+              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: method,
               items: const [
                 DropdownMenuItem(value: "Random", child: Text("Random")),
-                DropdownMenuItem(value: "Self-assigned", child: Text("Self-assigned")),
+                DropdownMenuItem(
+                  value: "Self-assigned",
+                  child: Text("Self-assigned"),
+                ),
               ],
               onChanged: (value) => setState(() => method = value!),
-              decoration: const InputDecoration(labelText: "Método"),
+              decoration: const InputDecoration(
+                labelText: "Método de agrupación",
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: groupSizeController,
-              decoration: const InputDecoration(labelText: "Tamaño de grupo"),
+              decoration: const InputDecoration(labelText: "Tamaño por grupo"),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                 if (nameController.text.trim().isEmpty) return;
-                 final newCategory = {
+                if (nameController.text.trim().isEmpty) return;
+
+                final newCategory = {
                   "name": nameController.text.trim(),
                   "method": method,
                   "groupSize": int.tryParse(groupSizeController.text) ?? 0,
@@ -59,7 +66,8 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                 final controller = Get.find<CategoryController>();
                 controller.addCategory(newCategory);
 
-                Get.off(() => CategoryListPage());
+                // ✅ Navegar a la lista de categorías (y eliminar esta del stack)
+                Get.to(() => CategoryListPage());
               },
               child: const Text("Guardar"),
             ),
@@ -69,5 +77,3 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     );
   }
 }
-
-

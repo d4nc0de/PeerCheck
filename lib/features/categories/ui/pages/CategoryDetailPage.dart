@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/category_controller.dart';
+import 'package:f_clean_template/features/categories/ui/controller/category_controller.dart';
 
 class CategoryDetailPage extends StatelessWidget {
   final int categoryIndex;
 
-  const CategoryDetailPage({
-    super.key,
-    required this.categoryIndex,
-  });
+  const CategoryDetailPage({super.key, required this.categoryIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +13,11 @@ class CategoryDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Obx(() => Text(
-          "Categoría: ${controller.categories[categoryIndex]["name"]}",
-        )),
+        title: Obx(
+          () => Text(
+            "Categoría: ${controller.categories[categoryIndex]["name"]}",
+          ),
+        ),
       ),
       body: Obx(() {
         final category = controller.categories[categoryIndex];

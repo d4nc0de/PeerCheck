@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/category_controller.dart';
+import 'package:f_clean_template/features/categories/ui/controller/category_controller.dart';
 import 'add_category_page.dart';
 import 'CategoryDetailPage.dart';
-
 
 class CategoryListPage extends StatelessWidget {
   final CategoryController controller = Get.find<CategoryController>();
