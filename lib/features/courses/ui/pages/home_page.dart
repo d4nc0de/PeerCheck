@@ -174,11 +174,6 @@ class _HomePageState extends State<HomePage> {
                                       : () => courseController.unenrollUser(
                                           course.id,
                                         ),
-                                  onCreateCategory: isProfesor
-                                      ? () {
-                                          Get.to(() => const AddCategoryPage());
-                                        }
-                                      : null,
                                 ),
                                 const SizedBox(height: 18),
                               ],

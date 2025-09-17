@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:f_clean_template/features/categories/ui/controller/category_controller.dart';
+import '../controller/category_controller.dart';
 
 class CategoryDetailPage extends StatelessWidget {
   final int categoryIndex;
@@ -28,10 +28,11 @@ class CategoryDetailPage extends StatelessWidget {
         }
 
         return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           itemCount: groups.length,
           itemBuilder: (context, index) {
             final group = groups[index];
-            final students = group["students"] as List;
+            final students = group["students"] as List<String>;
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -39,6 +40,21 @@ class CategoryDetailPage extends StatelessWidget {
                 leading: const Icon(Icons.group),
                 title: Text(group["name"]),
                 subtitle: Text("Estudiantes: ${students.length}"),
+                trailing: students.isEmpty
+                    ? null
+                    : PopupMenuButton<String>(
+                        onSelected: (student) {
+                          // Aquí puedes implementar mover o eliminar estudiante
+                        },
+                        itemBuilder: (_) => students
+                            .map(
+                              (s) => PopupMenuItem(
+                                value: s,
+                                child: Text(s),
+                              ),
+                            )
+                            .toList(),
+                      ),
               ),
             );
           },
@@ -55,7 +71,12 @@ class CategoryDetailPage extends StatelessWidget {
           });
         },
         child: const Icon(Icons.group_add),
+        tooltip: "Agregar grupo",
       ),
     );
   }
+}
+
+extension on CategoryController {
+  void addGroup(int categoryIndex, Map<String, Object> map) {}
 }

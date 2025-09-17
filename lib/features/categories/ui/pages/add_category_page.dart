@@ -18,6 +18,8 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<CategoryController>();
+
     return Scaffold(
       appBar: AppBar(title: const Text("Nueva Categoría")),
       body: Padding(
@@ -54,19 +56,30 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                if (nameController.text.trim().isEmpty) return;
+                final name = nameController.text.trim();
+                final groupSize = int.tryParse(groupSizeController.text) ?? 0;
 
-                final newCategory = {
-                  "name": nameController.text.trim(),
-                  "method": method,
-                  "groupSize": int.tryParse(groupSizeController.text) ?? 0,
-                  "groups": [],
-                };
+                if (name.isEmpty || groupSize <= 0) {
+                  Get.snackbar(
+                    'Error',
+                    'Debe ingresar nombre y tamaño válido',
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                  return;
+                }
 
-                final controller = Get.find<CategoryController>();
-                controller.addCategory(newCategory);
+                // Aquí deberías pasar la lista de estudiantes del curso
+                final students = <String>[]; // <-- Reemplaza con tu lista real
 
-                // ✅ Navegar a la lista de categorías (y eliminar esta del stack)
+                // Crear categoría y generar grupos automáticamente
+                controller.createCategoryWithGroups(
+                  name: name,
+                  method: method,
+                  groupSize: groupSize,
+                  students: students,
+                );
+
+                // Navegar a la lista de categorías
                 Get.to(() => CategoryListPage());
               },
               child: const Text("Guardar"),

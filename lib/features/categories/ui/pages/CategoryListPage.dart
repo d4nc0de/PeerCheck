@@ -28,7 +28,6 @@ class CategoryListPage extends StatelessWidget {
                 subtitle: Text("Método: ${category["method"]}"),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {
-                  // 👇 solo pasamos el índice, no todo el mapa
                   Get.to(() => CategoryDetailPage(categoryIndex: index));
                 },
               ),
