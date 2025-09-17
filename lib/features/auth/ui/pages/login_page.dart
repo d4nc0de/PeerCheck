@@ -255,7 +255,7 @@ class _LoginPageState extends State<LoginPage> {
                                 },
                               ),
                               const Text(
-                                "Recordar mis credenciales",
+                                "Recuérdame",
                                 style: TextStyle(
                                   fontFamily: "Poppins",
                                   fontSize: 12,

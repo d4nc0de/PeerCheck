@@ -67,11 +67,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: _logout,
             tooltip: 'Cerrar sesión',
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_forever, color: Colors.black87),
-            onPressed: () => courseController.deleteCourses(),
-            tooltip: 'Eliminar todos los cursos',
-          ),
         ],
       ),
       body: SafeArea(
@@ -334,6 +329,9 @@ class _ClassCard extends StatelessWidget {
       key: Key(course.id),
       direction: DismissDirection.endToStart,
       background: _buildDismissibleBackground(isProfesor),
+      confirmDismiss: (direction) async {
+        return await _confirmDelete(context, isProfesor);
+      },
       onDismissed: (_) => onDismissed(),
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -363,12 +361,19 @@ class _ClassCard extends StatelessWidget {
                     ),
                     backgroundColor: accent,
                   ),
-                  Container(
-                    width: 18,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: accent.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(2),
+                  GestureDetector(
+                    onTap: () async {
+                      final confirmed =
+                          await _confirmDelete(context, isProfesor);
+                      if (confirmed) onDismissed();
+                    },
+                    child: Container(
+                      width: 18,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
                 ],
@@ -406,6 +411,29 @@ class _ClassCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context, bool isProfesor) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(isProfesor ? "Eliminar curso" : "Salir del curso"),
+            content: Text(isProfesor
+                ? "¿Estás seguro de que deseas eliminar este curso?"
+                : "¿Quieres salir de este curso?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text("Cancelar"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text("Confirmar"),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   Widget _buildDismissibleBackground(bool isProfesor) {

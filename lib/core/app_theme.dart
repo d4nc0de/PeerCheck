@@ -56,9 +56,9 @@ class AppTheme {
   static final light = ThemeData.light().copyWith(
     extensions: <ThemeExtension<dynamic>>[
       const RolePalette(
-        profesorAccent: Color(0xFF003566), // Azul para profesor
+        profesorAccent: Color(0xFF026CD2), // Azul para profesor
         estudianteAccent: Color(0xFFFFD60A), // Amarillo para estudiante
-        profesorCard: Color(0xFFE6F0FF), // Fondo claro azul
+        profesorCard: Color(0xFFE3F2FD), // Fondo claro azul (derivado del accent)
         estudianteCard: Color(0xFFFFF8E1), // Fondo claro amarillo
         surfaceSoft: Color(0xFFF8F9FA), // Fondo gris suave
       ),
@@ -68,16 +68,13 @@ class AppTheme {
   static final dark = ThemeData.dark().copyWith(
     extensions: <ThemeExtension<dynamic>>[
       const RolePalette(
-        profesorAccent: Color(
-          0xFF003566,
-        ), // Azul para profesor (mismo que light)
-        estudianteAccent: Color(
-          0xFFFFD60A,
-        ), // Amarillo para estudiante (mismo que light)
-        profesorCard: Color(0xFF1E2A3D), // Fondo oscuro azul
+        profesorAccent: Color(0xFF026CD2), // Azul para profesor
+        estudianteAccent: Color(0xFFFFD60A), // Amarillo para estudiante
+        profesorCard: Color(0xFF0D47A1), // Fondo oscuro azul (derivado del accent)
         estudianteCard: Color(0xFF2D2A1D), // Fondo oscuro amarillo
         surfaceSoft: Color(0xFF1A1C1E), // Fondo oscuro gris
       ),
     ],
   );
 }
+
