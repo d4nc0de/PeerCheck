@@ -83,12 +83,18 @@ class _HomePageState extends State<HomePage> {
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    "PeerCheck",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w200,
-                      fontSize: 26,
-                    ),
+                  Obx(
+                    () {
+                      final currentUser = authController.currentUser.value;
+                      final userName = currentUser?.name ?? "Usuario";
+                      return Text(
+                        userName,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w200,
+                          fontSize: 24,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
