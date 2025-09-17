@@ -1,32 +1,33 @@
-import '../../domain/models/authentication_user.dart';
-import '../../domain/repositories/i_auth_repository.dart';
-import '../datasources/remote/i_authentication_source.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/auth/domain/repositories/i_auth_repository.dart';
+import 'package:f_clean_template/features/auth/data/datasources/remote/i_authentication_source.dart';
 
 class AuthRepository implements IAuthRepository {
-  late IAuthenticationSource authenticationSource;
+  final IAuthenticationSource source;
 
-  AuthRepository(this.authenticationSource);
-
-  @override
-  Future<bool> login(AuthenticationUser user) async =>
-      await authenticationSource.login(user);
+  AuthRepository(this.source);
 
   @override
-  Future<bool> signUp(AuthenticationUser user) async =>
-      await authenticationSource.signUp(user);
+  Future<AuthenticationUser> login(String email, String password) {
+    return source.login(email, password);
+  }
 
   @override
-  Future<bool> logOut() async => await authenticationSource.logOut();
+  Future<AuthenticationUser> signup(
+    String name,
+    String email,
+    String password,
+  ) {
+    return source.signup(name, email, password);
+  }
 
   @override
-  Future<bool> validate(String email, String validationCode) async =>
-      await authenticationSource.validate(email, validationCode);
+  Future<void> logout() {
+    return source.logout();
+  }
 
   @override
-  Future<bool> validateToken() async =>
-      await authenticationSource.verifyToken();
-
-  @override
-  Future<void> forgotPassword(String email) async =>
-      await authenticationSource.forgotPassword(email);
+  AuthenticationUser? getCurrentUser() {
+    return source.getCurrentUser();
+  }
 }

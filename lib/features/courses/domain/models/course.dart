@@ -18,7 +18,7 @@ class Course {
   int maxStudents;
 
   factory Course.fromJson(Map<String, dynamic> json) => Course(
-    id: json["_id"] ?? "",
+    id: json["_id"] ?? json["id"] ?? "",
     name: json["name"] ?? "---",
     nrc: json["nrc"] ?? 0,
     teacher: json["teacher"] ?? "---",
@@ -28,7 +28,7 @@ class Course {
   );
 
   Map<String, dynamic> toJson() => {
-    "_id": id,
+    "id": id,
     "name": name,
     "nrc": nrc,
     "teacher": teacher,

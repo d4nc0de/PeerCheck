@@ -10,16 +10,19 @@ class CourseUseCase {
     return await courseRepository.getCourses();
   }
 
-  Future<List<Course>> getTeacherCourses() async {
-    return await courseRepository.getTeacherCourses();
+  Future<List<Course>> getTeacherCourses(String teacherEmail) async {
+    return await courseRepository.getTeacherCourses(teacherEmail);
   }
 
-  Future<List<Course>> getStudentCourses() async {
-    return await courseRepository.getStudentCourses();
+  Future<List<Course>> getStudentCourses(String userEmail) async {
+    return await courseRepository.getStudentCourses(userEmail);
   }
 
-  Future<List<Course>> getCoursesByRole(bool isTeacher) async {
-    return await courseRepository.getCoursesByRole(isTeacher);
+  Future<List<Course>> getCoursesByRole(
+    bool isTeacher,
+    String userEmail,
+  ) async {
+    return await courseRepository.getCoursesByRole(isTeacher, userEmail);
   }
 
   Future<void> addCourse(

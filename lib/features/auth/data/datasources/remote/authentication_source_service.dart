@@ -1,65 +1,127 @@
-import 'package:loggy/loggy.dart';
-import 'package:http/http.dart' as http;
-import '../../../domain/models/authentication_user.dart';
-import 'i_authentication_source.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/auth/data/datasources/remote/i_authentication_source.dart';
 
 class AuthenticationSourceService implements IAuthenticationSource {
-  final http.Client httpClient;
+  static const String _usersKey = "users_data";
+  static const String _currentUserKey = "current_user";
 
-  AuthenticationSourceService({http.Client? client})
-    : httpClient = client ?? http.Client();
+  List<AuthenticationUser> _users = [];
+  AuthenticationUser? _currentUser;
 
-  @override
-  Future<bool> login(AuthenticationUser user) async {
-    logInfo("Attempting login for email: ${user.email}");
-    return Future.value(true);
+  AuthenticationSourceService() {
+    _loadFromPrefs();
+  }
 
-    // in case of error
-    // return Future.error('Login failed');
+  Future<void> _loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getStringList(_usersKey) ?? [];
+
+    _users = usersJson
+        .map((e) => AuthenticationUser.fromJson(jsonDecode(e)))
+        .toList();
+
+    final currentUserJson = prefs.getString(_currentUserKey);
+    if (currentUserJson != null) {
+      _currentUser = AuthenticationUser.fromJson(jsonDecode(currentUserJson));
+    }
+
+    // 🔹 Si es primera vez, cargar usuarios por defecto
+    if (_users.isEmpty) {
+      _users = [
+        AuthenticationUser(
+          id: 'user_a',
+          name: 'Andrés Pérez',
+          email: 'a@a.com',
+          password: '123456',
+        ),
+        AuthenticationUser(
+          id: 'user_b',
+          name: 'Beatriz López',
+          email: 'b@a.com',
+          password: '123456',
+        ),
+        AuthenticationUser(
+          id: 'user_c',
+          name: 'Carlos Gómez',
+          email: 'c@a.com',
+          password: '123456',
+        ),
+      ];
+      await _saveUsers();
+    }
+  }
+
+  Future<void> _saveUsers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = _users.map((u) => jsonEncode(u.toJson())).toList();
+    await prefs.setStringList(_usersKey, usersJson);
+  }
+
+  Future<void> _saveCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_currentUser != null) {
+      await prefs.setString(
+        _currentUserKey,
+        jsonEncode(_currentUser!.toJson()),
+      );
+    } else {
+      await prefs.remove(_currentUserKey);
+    }
   }
 
   @override
-  Future<bool> signUp(AuthenticationUser user) async {
-    logInfo("Attempting sign up for email: ${user.email}");
-    return Future.value(true);
+  Future<AuthenticationUser> login(String email, String password) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final user = _users.firstWhere(
+      (u) => u.email == email && u.password == password,
+      orElse: () => throw Exception("Credenciales inválidas"),
+    );
+
+    _currentUser = user;
+    await _saveCurrentUser();
+    return user;
   }
 
   @override
-  Future<bool> logOut() async {
-    logInfo("Attempting logout");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> validate(String email, String validationCode) async {
-    logInfo("Attempting email validation for email: $email");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> refreshToken() async {
-    logInfo("Attempting token refresh");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> forgotPassword(String email) async {
-    logInfo("Attempting password reset for email: $email");
-    return Future.value(true);
-  }
-
-  @override
-  Future<bool> resetPassword(
+  Future<AuthenticationUser> signup(
+    String name,
     String email,
-    String newPassword,
-    String validationCode,
+    String password,
   ) async {
-    return Future.value(true);
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final exists = _users.any((u) => u.email == email);
+    if (exists) {
+      throw Exception("El correo ya está registrado");
+    }
+
+    final newUser = AuthenticationUser.create(
+      name: name,
+      email: email,
+      password: password,
+    );
+
+    _users.add(newUser);
+    _currentUser = newUser;
+
+    await _saveUsers();
+    await _saveCurrentUser();
+
+    return newUser;
   }
 
   @override
-  Future<bool> verifyToken() async {
-    logInfo("Attempting token verification");
-    return Future.value(true);
+  Future<void> logout() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _currentUser = null;
+    await _saveCurrentUser();
+  }
+
+  @override
+  AuthenticationUser? getCurrentUser() {
+    return _currentUser;
   }
 }

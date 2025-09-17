@@ -1,4 +1,5 @@
 import 'package:f_clean_template/core/app_theme.dart';
+import 'package:f_clean_template/features/courses/ui/pages/course_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
@@ -8,6 +9,8 @@ import '../controller/course_controller.dart';
 import 'add_course_page.dart';
 import 'course_enrollment_page.dart';
 import 'course_enroll_page.dart';
+import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
+import 'package:f_clean_template/features/courses/domain/models/course.dart';
 
 enum UserRole { profesor, estudiante }
 
@@ -35,7 +38,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Cargar cursos según el rol inicial
     courseController.getCoursesByRole(_role == UserRole.profesor);
   }
 
@@ -96,7 +98,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.only(top: 6, bottom: 12),
               child: Text(
@@ -106,7 +107,6 @@ class _HomePageState extends State<HomePage> {
                 ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _RoleSegmented(
@@ -115,14 +115,11 @@ class _HomePageState extends State<HomePage> {
                 estudianteColor: palette.estudianteAccent,
                 onChanged: (r) {
                   setState(() => _role = r);
-                  // Cargar cursos según el nuevo rol
                   courseController.getCoursesByRole(r == UserRole.profesor);
                 },
               ),
             ),
-
             const SizedBox(height: 14),
-
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -146,11 +143,8 @@ class _HomePageState extends State<HomePage> {
                                     isProfesor,
                                   )) ...[
                                 _ClassCard(
-                                  title: course.name,
-                                  nrc: course.nrc,
-                                  teacher: course.teacher,
-                                  enrolledCount: course.enrolledCount,
-                                  maxStudents: course.maxStudents,
+                                  course: course,
+                                  isProfesor: isProfesor,
                                   accent: accent,
                                   bg: cardBg,
                                   onTap: () {
@@ -164,16 +158,26 @@ class _HomePageState extends State<HomePage> {
                                       );
                                     } else {
                                       Get.to(
-                                        () => CourseEnrollmentPage(
+                                        () => CourseDetailPage(
                                           courseId: course.id,
                                           courseName: course.name,
-                                          isStudentView: true,
+                                          teacherEmail: course.teacher,
                                         ),
                                       );
                                     }
                                   },
-                                  onDismissed: () =>
-                                      courseController.deleteCourse(course),
+                                  onDismissed: isProfesor
+                                      ? () => courseController.deleteCourse(
+                                          course,
+                                        )
+                                      : () => courseController.unenrollUser(
+                                          course.id,
+                                        ),
+                                  onCreateCategory: isProfesor
+                                      ? () {
+                                          Get.to(() => const AddCategoryPage());
+                                        }
+                                      : null,
                                 ),
                                 const SizedBox(height: 18),
                               ],
@@ -197,7 +201,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: accent,
@@ -307,38 +310,30 @@ class _SegmentBtn extends StatelessWidget {
 }
 
 class _ClassCard extends StatelessWidget {
-  final String title;
-  final int nrc;
-  final String teacher;
-  final int enrolledCount;
-  final int maxStudents;
+  final Course course;
+  final bool isProfesor;
   final Color accent;
   final Color bg;
   final VoidCallback onTap;
   final VoidCallback onDismissed;
+  final VoidCallback? onCreateCategory;
 
   const _ClassCard({
-    required this.title,
-    required this.nrc,
-    required this.teacher,
-    required this.enrolledCount,
-    required this.maxStudents,
+    required this.course,
+    required this.isProfesor,
     required this.accent,
     required this.bg,
     required this.onTap,
     required this.onDismissed,
+    this.onCreateCategory,
   });
 
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: UniqueKey(),
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 16),
-        child: const Text('Eliminando', style: TextStyle(color: Colors.white)),
-      ),
+      key: Key(course.id),
+      direction: DismissDirection.endToStart,
+      background: _buildDismissibleBackground(isProfesor),
       onDismissed: (_) => onDismissed(),
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -363,7 +358,9 @@ class _ClassCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Badge(
-                    label: Text('$enrolledCount/$maxStudents'),
+                    label: Text(
+                      '${course.enrolledCount}/${course.maxStudents}',
+                    ),
                     backgroundColor: accent,
                   ),
                   Container(
@@ -378,16 +375,67 @@ class _ClassCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                title,
+                course.name,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 8),
-              Text('NRC: $nrc', style: const TextStyle(color: Colors.black54)),
-              const SizedBox(height: 4),
-              Text(teacher, style: const TextStyle(color: Colors.black54)),
+              Text(
+                course.teacher,
+                style: const TextStyle(color: Colors.black54),
+              ),
+              if (onCreateCategory != null) ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: onCreateCategory,
+                  icon: const Icon(Icons.category),
+                  label: const Text("Crear categoría"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDismissibleBackground(bool isProfesor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: isProfesor ? const Color(0xFFB91C1C) : const Color(0xFFD1D5DB),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Icon(
+                isProfesor ? Icons.delete_forever : Icons.exit_to_app,
+                color: Colors.white,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isProfesor ? 'Eliminar' : 'Salir',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
