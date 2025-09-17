@@ -26,6 +26,8 @@ import 'features/courses/ui/controller/course_controller.dart';
 import 'features/categories/ui/controller/category_controller.dart';
 
 void main() {
+
+  WidgetsFlutterBinding.ensureInitialized();
   Loggy.initLoggy(logPrinter: const PrettyPrinter(showColors: true));
 
   // Inicializar dependencias antes de correr la app
