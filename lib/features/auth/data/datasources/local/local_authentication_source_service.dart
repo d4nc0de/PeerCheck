@@ -3,14 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 import 'package:f_clean_template/features/auth/data/datasources/remote/i_authentication_source.dart';
 
-class AuthenticationSourceService implements IAuthenticationSource {
+class LocalAuthenticationSourceService implements IAuthenticationSource {
   static const String _usersKey = "users_data";
   static const String _currentUserKey = "current_user";
 
   List<AuthenticationUser> _users = [];
   AuthenticationUser? _currentUser;
 
-  AuthenticationSourceService() {
+  LocalAuthenticationSourceService() {
     _loadFromPrefs();
   }
 
