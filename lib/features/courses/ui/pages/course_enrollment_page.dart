@@ -1,11 +1,12 @@
 import 'package:f_clean_template/features/categories/ui/controller/category_controller.dart';
+import 'package:f_clean_template/features/categories/ui/pages/CategoryEditPage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_theme.dart';
 import '../controller/course_controller.dart';
 import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
-import 'package:f_clean_template/features/courses/domain/models/category.dart';
-import 'package:f_clean_template/features/courses/domain/models/activity.dart';
+import 'package:f_clean_template/features/categories/domain/models/category.dart';
+import 'package:f_clean_template/features/categories/domain/models/activity.dart';
 
 class CourseEnrollmentPage extends StatefulWidget {
   final String courseId;
@@ -27,6 +28,7 @@ class CourseEnrollmentPage extends StatefulWidget {
 
 class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
   final CourseController courseController = Get.find();
+  final CategoryController categoryController = Get.find();
   Category? _selectedCategory;
   final ScrollController _scrollController = ScrollController();
 
@@ -34,8 +36,19 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
   void initState() {
     super.initState();
     courseController.seedMockIfNeeded(widget.courseId);
-    final cats = courseController.getCategoriesForCourse(widget.courseId);
-    if (cats.isNotEmpty) _selectedCategory = cats.first;
+    _loadAndSelectCategories();
+  }
+
+  // Método separado para cargar y seleccionar categorías
+  void _loadAndSelectCategories() {
+    categoryController.loadCategoriesWithGroups(widget.courseId);
+    
+    // Espera a que las categorías se carguen y selecciona la primera si existe
+    ever<List<Category>>(categoryController.categories, (cats) {
+      if (cats.isNotEmpty && _selectedCategory == null) {
+        setState(() => _selectedCategory = cats.first);
+      }
+    });
   }
 
   @override
@@ -50,6 +63,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
     required Color accent,
     required Color cardBg,
     required VoidCallback onTap,
+    required VoidCallback onEdit,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -93,6 +107,19 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                     ),
                   ),
                 ),
+                IconButton(
+                  onPressed: onEdit,
+                  icon: Icon(
+                    Icons.edit,
+                    size: 18,
+                    color: isSelected ? accent : Colors.grey[600],
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 30,
+                    minHeight: 30,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -106,84 +133,187 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
     required Activity activity,
     required Color accent,
     required Color cardBg,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.assignment_outlined,
-                color: accent,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  activity.name,
-                  style: const TextStyle(
-                    fontFamily: "Poppins",
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.assignment_outlined,
+                  color: accent,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    activity.name,
+                    style: const TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
-              ),
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert, color: Colors.grey[600]),
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    Get.snackbar(
-                      "Próximamente",
-                      "Edición de actividades estará disponible pronto",
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: accent,
-                      colorText: Colors.white,
-                    );
-                  } else if (value == 'delete') {
-                    _showDeleteActivityDialog(activity);
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, size: 18),
-                        SizedBox(width: 8),
-                        Text('Editar'),
-                      ],
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      Get.snackbar(
+                        "Próximamente",
+                        "Edición de actividades estará disponible pronto",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: accent,
+                        colorText: Colors.white,
+                      );
+                    } else if (value == 'delete') {
+                      _showDeleteActivityDialog(activity);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 18),
+                          SizedBox(width: 8),
+                          Text('Editar'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Eliminar', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupCard({
+    required dynamic group,
+    required Color accent,
+    required Color cardBg,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.groups_outlined,
+                  color: accent,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    group.name ?? 'Grupo sin nombre',
+                    style: const TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                   ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete, size: 18, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text('Eliminar', style: TextStyle(color: Colors.red)),
-                      ],
+                ),
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      Get.snackbar(
+                        "Próximamente",
+                        "Edición de grupos estará disponible pronto",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: accent,
+                        colorText: Colors.white,
+                      );
+                    } else if (value == 'delete') {
+                      _showDeleteGroupDialog(group);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 18),
+                          SizedBox(width: 8),
+                          Text('Editar'),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Eliminar', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            if (group.description != null && group.description.isNotEmpty)
+              Text(
+                group.description,
+                style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -225,20 +355,53 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
     );
   }
 
+  void _showDeleteGroupDialog(dynamic group) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "Eliminar Grupo",
+          style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          "¿Estás seguro de que deseas eliminar '${group.name ?? 'este grupo'}'?",
+          style: const TextStyle(fontFamily: "Poppins", fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Get.snackbar(
+                "Grupo Eliminado",
+                "'${group.name ?? 'Grupo'}' ha sido eliminado",
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red,
+                colorText: Colors.white,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Eliminar", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).extension<RolePalette>()!;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     final Color accent = palette.profesorAccent;
     final Color cardBg = palette.profesorCard;
     final Color surface = palette.surfaceSoft;
-    
+
     final bool showCode = widget.courseCode != null && !widget.isStudentView;
-    final cats = courseController.getCategoriesForCourse(widget.courseId);
-    final activities = _selectedCategory == null
-        ? <Activity>[]
-        : courseController.getActivitiesForCategory(_selectedCategory!.id);
 
     return Scaffold(
       backgroundColor: surface,
@@ -258,17 +421,16 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
               ),
               flexibleSpace: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
-                  // Calculate the collapse percentage
                   final double expandedHeight = 200.0;
                   final double collapsedHeight = 80.0;
                   final double currentHeight = constraints.maxHeight;
-                  final double collapsePercentage = 
+                  final double collapsePercentage =
                       ((expandedHeight - currentHeight) / (expandedHeight - collapsedHeight))
                           .clamp(0.0, 1.0);
-                  
+
                   return FlexibleSpaceBar(
                     titlePadding: EdgeInsets.only(
-                      left: 60.0, // Space for back button
+                      left: 60.0,
                       bottom: 16.0 + (8.0 * (1 - collapsePercentage)),
                       right: 16.0,
                     ),
@@ -293,7 +455,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 40), // Space for status bar and app bar
+                          const SizedBox(height: 40),
                           AnimatedScale(
                             duration: const Duration(milliseconds: 200),
                             scale: 1.0 - (collapsePercentage * 0.3),
@@ -411,7 +573,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                         const SizedBox(height: 24),
                       ],
 
-                                      // Categories Section
+                      // Categories Section
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -428,8 +590,9 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                                 ),
                               ),
                               ElevatedButton.icon(
-                                onPressed: () {
-                                  Get.to(() => const AddCategoryPage());
+                                onPressed: () async {
+                                  await Get.to(() => AddCategoryPage(courseId: widget.courseId));
+                                  _loadAndSelectCategories();
                                 },
                                 icon: const Icon(Icons.add, size: 18),
                                 label: const Text("Agregar"),
@@ -448,10 +611,10 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Lista de categorías reactiva
                           Obx(() {
-                            final cats = Get.find<CategoryController>().categories;
+                            final cats = categoryController.categories;
                             if (cats.isEmpty) {
                               return Container(
                                 width: double.infinity,
@@ -493,25 +656,24 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                                   itemCount: cats.length,
                                   itemBuilder: (context, index) {
                                     final category = cats[index];
-                                    final isSelected = _selectedCategory?.name == category["name"];
+                                    final isSelected = _selectedCategory?.id == category.id;
                                     return Container(
                                       width: 200,
                                       margin: const EdgeInsets.only(right: 12),
                                       child: _buildCategoryCard(
-                                        category: Category(
-                                          id: index.toString(),
-                                          name: category["name"], courseId: '',
-                                        ),
+                                        category: category,
                                         isSelected: isSelected,
                                         accent: accent,
                                         cardBg: cardBg,
                                         onTap: () {
-                                          setState(() {
-                                            _selectedCategory = Category(
-                                              id: index.toString(),
-                                              name: category["name"], courseId: '',
-                                            );
-                                          });
+                                          setState(() => _selectedCategory = category);
+                                        },
+                                        onEdit: () async {
+                                          await Get.to(() => CategoryEditPage(
+                                            category: category,
+                                            courseId: widget.courseId,
+                                          ));
+                                          _loadAndSelectCategories();
                                         },
                                       ),
                                     );
@@ -523,9 +685,9 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                         ],
                       ),
 
-
                       // Activities Section
                       if (_selectedCategory != null) ...[
+                        const SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -569,59 +731,75 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                         const SizedBox(height: 16),
 
                         // Activities List
-                        if (activities.isEmpty) ...[
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(32),
-                            decoration: BoxDecoration(
-                              color: cardBg,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(Icons.assignment_outlined, 
-                                     size: 48, color: Colors.grey[400]),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'No hay actividades en esta categoría',
-                                  style: TextStyle(
-                                    fontFamily: "Poppins",
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
+                        Builder(
+                          builder: (context) {
+                            final activities = _selectedCategory!.activities;
+                            if (activities.isEmpty) {
+                              return Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Agrega actividades para que los estudiantes puedan evaluarse',
-                                  style: TextStyle(
-                                    fontFamily: "Poppins",
-                                    fontSize: 12,
-                                    color: Colors.grey[500],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ] else ...[
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: activities.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildActivityCard(
-                                  activity: activities[index],
-                                  accent: accent,
-                                  cardBg: cardBg,
+                                child: Column(
+                                  children: [
+                                    Icon(Icons.assignment_outlined,
+                                        size: 48, color: Colors.grey[400]),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'No hay actividades en esta categoría',
+                                      style: TextStyle(
+                                        fontFamily: "Poppins",
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Agrega actividades para que los estudiantes puedan evaluarse',
+                                      style: TextStyle(
+                                        fontFamily: "Poppins",
+                                        fontSize: 12,
+                                        color: Colors.grey[500],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
                                 ),
                               );
-                            },
-                          ),
-                        ],
-                        const SizedBox(height: 24),
+                            } else {
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: activities.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _buildActivityCard(
+                                      activity: activities[index],
+                                      accent: accent,
+                                      cardBg: cardBg,
+                                      onTap: () {
+                                        // TODO: Navegar a la página de detalles de la actividad
+                                        Get.snackbar(
+                                          "Próximamente",
+                                          "Navegación a detalles de la actividad estará disponible pronto",
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor: accent,
+                                          colorText: Colors.white,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        ),
                       ],
+
+                      const SizedBox(height: 24),
 
                       // Students Section
                       const Text(
@@ -638,7 +816,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                       // Students List
                       Obx(() {
                         final enrolledUsers = courseController.getEnrolledUsers(widget.courseId);
-                        
+
                         if (enrolledUsers.isEmpty) {
                           return Container(
                             width: double.infinity,
@@ -649,8 +827,8 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                             ),
                             child: Column(
                               children: [
-                                Icon(Icons.person_outline, 
-                                     size: 48, color: Colors.grey[400]),
+                                Icon(Icons.person_outline,
+                                    size: 48, color: Colors.grey[400]),
                                 const SizedBox(height: 12),
                                 Text(
                                   'No hay estudiantes inscritos',

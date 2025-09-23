@@ -4,7 +4,9 @@ import '../controller/category_controller.dart';
 import 'CategoryListPage.dart';
 
 class AddCategoryPage extends StatefulWidget {
-  const AddCategoryPage({super.key});
+  final String courseId; // <-- Asegúrate de pasar el courseId
+
+  const AddCategoryPage({super.key, required this.courseId});
 
   @override
   State<AddCategoryPage> createState() => _AddCategoryPageState();
@@ -55,7 +57,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = nameController.text.trim();
                 final groupSize = int.tryParse(groupSizeController.text) ?? 0;
 
@@ -68,19 +70,17 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                   return;
                 }
 
-                // Aquí deberías pasar la lista de estudiantes del curso
-                final students = <String>[]; // <-- Reemplaza con tu lista real
+                final groupingMethod = method == "Random" ? 2 : 1;
 
-                // Crear categoría y generar grupos automáticamente
-                controller.createCategoryWithGroups(
+                await controller.addCategory(
                   name: name,
-                  method: method,
+                  courseId: widget.courseId,
+                  groupingMethod: groupingMethod,
                   groupSize: groupSize,
-                  students: students,
                 );
 
                 // Navegar a la lista de categorías
-                Get.to(() => CategoryListPage());
+                Get.to(() => CategoryListPage(courseId: widget.courseId));
               },
               child: const Text("Guardar"),
             ),

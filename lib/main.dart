@@ -24,6 +24,12 @@ import 'features/courses/ui/controller/course_controller.dart';
 
 // Categories
 import 'features/categories/ui/controller/category_controller.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/categories/data/datasources/local/i_category_source.dart';
+import 'package:f_clean_template/features/categories/data/datasources/local/local_category_source.dart';
+import 'package:f_clean_template/features/categories/data/repositories/category_repository.dart';
+import 'package:f_clean_template/features/categories/domain/use_case/category_usecase.dart';
+
 
 void main() {
 
@@ -54,9 +60,14 @@ void initDependencies() {
   Get.lazyPut(() => CourseController());
 
   // Categories
-  Get.put(
-    CategoryController(),
-  ); // ✅ Este es el controlador que necesitas que esté disponible globalmente
+  Get.put<LocalCategorySource>(LocalCategorySource());
+  Get.put<ICategorySource>(Get.find<LocalCategorySource>());
+  Get.put<LocalCategoryRepository>(
+      LocalCategoryRepository(Get.find<ICategorySource>()));
+  Get.put<CategoryUseCase>(
+      CategoryUseCase(categoryRepository: Get.find<LocalCategoryRepository>()));
+  Get.put<CategoryController>(
+      CategoryController(Get.find<CategoryUseCase>()));
 }
 
 class MyApp extends StatelessWidget {

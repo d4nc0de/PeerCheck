@@ -1,6 +1,7 @@
 import 'package:f_clean_template/features/courses/domain/models/course.dart';
 import 'package:f_clean_template/features/courses/domain/repositories/i_course_repository.dart';
 
+
 class CourseUseCase {
   final ICourseRepository courseRepository;
 

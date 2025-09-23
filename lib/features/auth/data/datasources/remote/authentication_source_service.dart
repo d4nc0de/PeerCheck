@@ -52,6 +52,13 @@ class AuthenticationSourceService implements IAuthenticationSource {
       await _saveUsers();
     }
   }
+  Future<List<AuthenticationUser>> getAllUsers() async {
+  // Asegura que los usuarios estén cargados desde SharedPreferences
+  if (_users.isEmpty) {
+    await _loadFromPrefs();
+  }
+  return List<AuthenticationUser>.from(_users);
+  }
 
   Future<void> _saveUsers() async {
     final prefs = await SharedPreferences.getInstance();

@@ -1,5 +1,7 @@
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
-abstract class ICategorySource {
+
+
+abstract class ICategoryRepository {
   Future<List<Category>> getCategories();
   Future<void> addCategory(Category category);
   Future<void> removeCategory(String categoryId);

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:f_clean_template/features/courses/domain/models/course.dart';
 import 'package:f_clean_template/features/courses/data/datasources/i_course_source.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 
 class LocalCourseSource implements ICourseSource {
   static const String _coursesKey = "courses_data";
@@ -169,4 +170,20 @@ class LocalCourseSource implements ICourseSource {
       return null;
     }
   }
+
+  Future<List<AuthenticationUser>> getEnrolledUsers(
+      String courseId, List<AuthenticationUser> allUsers) async {
+    final course = _courses.firstWhere(
+      (c) => c.id == courseId,
+      orElse: () => throw Exception("Curso no encontrado"),
+    );
+
+    // Filtrar los usuarios completos por los correos inscritos
+    final enrolledUsers = allUsers
+        .where((u) => course.enrolledUsers.contains(u.email))
+        .toList();
+
+    return enrolledUsers;
+  }
+
 }

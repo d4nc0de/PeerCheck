@@ -1,93 +1,63 @@
-// lib/features/categories/data/repositories/category_repository.dart
-
 import 'dart:convert';
+import 'package:f_clean_template/features/categories/data/datasources/local/i_category_source.dart';
+import 'package:f_clean_template/features/categories/domain/models/category.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../domain/repositories/i_category_source.dart';
 
-class CategoryRepository {
-  static const String _categoriesKey = "categories_data";
 
-  final List<Map<String, dynamic>> _defaultCategories = [
-    {
-      "name": "General",
-      "method": "Random",
-      "groupSize": 0,
-      "groups": [],
-    },
-  ];
+class LocalCategoryRepository implements ICategoryRepository {
+  final String _storageKey = 'categories';
 
-  List<Map<String, dynamic>> _categories = [];
+  LocalCategoryRepository(ICategorySource find);
 
-  CategoryRepository() {
-    _loadFromPrefs();
+  @override
+  Future<List<domain.Category>> getCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_storageKey);
+
+    if (jsonString != null) {
+      final List<dynamic> decoded = json.decode(jsonString);
+      return decoded.map((c) => domain.Category.fromJson(c)).toList();
+    }
+
+    print("📂 Leyendo categorías desde storage:");
+    print(jsonString);
+    return [];
   }
 
-  /// Cargar categorías desde SharedPreferences
-  Future<void> _loadFromPrefs() async {
+  @override
+  Future<void> addCategory(domain.Category category) async {
     final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getStringList(_categoriesKey) ?? [];
+    final categories = await getCategories();
+    categories.add(category);
 
-    _categories = stored.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
+    final jsonString = json.encode(categories.map((c) => c.toJson()).toList());
+    print("📦 Guardando categorías en storage:");
+    print(jsonString); // 👈 aquí ves si incluye id, name, courseId, etc.
+    await prefs.setString(_storageKey, jsonString);
+  }
 
-    // Si es primera vez, guardamos categorías por defecto
-    if (_categories.isEmpty) {
-      _categories = [..._defaultCategories];
-      await _saveCategories();
+  @override
+  Future<void> updateCategory(domain.Category updatedCategory) async {
+    final prefs = await SharedPreferences.getInstance();
+    final categories = await getCategories();
+
+    final index = categories.indexWhere((c) => c.id == updatedCategory.id);
+    if (index != -1) {
+      categories[index] = updatedCategory;
+      final jsonString =
+          json.encode(categories.map((c) => c.toJson()).toList());
+      await prefs.setString(_storageKey, jsonString);
     }
   }
 
-  /// Guardar categorías en SharedPreferences
-  Future<void> _saveCategories() async {
+  @override
+  Future<void> removeCategory(String categoryId) async {
     final prefs = await SharedPreferences.getInstance();
-    final data = _categories.map((c) => jsonEncode(c)).toList();
-    await prefs.setStringList(_categoriesKey, data);
-  }
+    final categories = await getCategories();
+    categories.removeWhere((c) => c.id == categoryId);
 
-  /// Obtener todas las categorías
-  Future<List<Map<String, dynamic>>> getCategories() async {
-    return _categories;
-  }
-
-  /// Agregar una nueva categoría
-  Future<void> addCategory(Map<String, dynamic> category) async {
-    _categories.add(category);
-    await _saveCategories();
-  }
-
-  /// Editar una categoría existente
-  Future<void> editCategory(int index, Map<String, dynamic> updatedCategory) async {
-    if (index < 0 || index >= _categories.length) return;
-    _categories[index] = updatedCategory;
-    await _saveCategories();
-  }
-
-  /// Eliminar una categoría
-  Future<void> deleteCategory(int index) async {
-    if (index < 0 || index >= _categories.length) return;
-    _categories.removeAt(index);
-    await _saveCategories();
-  }
-
-  /// Agregar un grupo dentro de una categoría
-  Future<void> addGroup(int categoryIndex, Map<String, dynamic> group) async {
-    if (categoryIndex < 0 || categoryIndex >= _categories.length) return;
-    _categories[categoryIndex]["groups"].add(group);
-    await _saveCategories();
-  }
-
-  /// Mover estudiante entre grupos
-  Future<void> moveStudent(
-    int categoryIndex,
-    int fromGroup,
-    int toGroup,
-    dynamic student,
-  ) async {
-    final category = _categories[categoryIndex];
-    final from = category["groups"][fromGroup]["students"] as List<dynamic>;
-    final to = category["groups"][toGroup]["students"] as List<dynamic>;
-
-    from.remove(student);
-    to.add(student);
-
-    await _saveCategories();
+    final jsonString = json.encode(categories.map((c) => c.toJson()).toList());
+    await prefs.setString(_storageKey, jsonString);
   }
 }
