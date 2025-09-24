@@ -1,4 +1,4 @@
-import 'package:f_clean_template/features/categories/domain/repositories/i_category_repository.dart';
+import 'package:f_clean_template/features/auth/data/datasources/local/local_authentication_source_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -8,7 +8,7 @@ import 'central.dart';
 import 'core/app_theme.dart';
 
 // Auth
-import 'features/auth/data/datasources/remote/authentication_source_service.dart';
+import 'features/auth/data/datasources/remote/Remote_authentication_source_service.dart';
 import 'features/auth/data/datasources/remote/i_authentication_source.dart';
 import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/auth/domain/repositories/i_auth_repository.dart';
@@ -39,6 +39,16 @@ import 'package:f_clean_template/features/groups/domain/use_case/group_usecase.d
 import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 
 
+
+const String kApiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'https://roble-api.openlab.uninorte.edu.co',
+);
+
+const String kApiDbName = String.fromEnvironment(
+  'API_DB_NAME',
+  defaultValue: 'peercheck_8b796c5f03', // <-- cámbialo por tu dbName real
+);
 void main() {
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,18 +63,30 @@ void main() {
 void initDependencies() {
   // Cliente HTTP
   Get.put(http.Client(), tag: 'apiClient');
+  final client = Get.find<http.Client>(tag: 'apiClient');
 
-  // Auth
-  Get.put<IAuthenticationSource>(AuthenticationSourceService());
-  Get.put<IAuthRepository>(AuthRepository(Get.find()));
-  Get.put(AuthenticationUseCase(Get.find()));
-  Get.put(AuthenticationController(Get.find()));
+  const useRemote = true; // 👈 cambia a false para usar local
 
-  // Courses
+  if (useRemote) {
+    Get.put<IAuthenticationSource>(
+      RemoteAuthenticationSourceService(
+        client: client,
+        baseUrl: kApiBaseUrl,
+        dbName: kApiDbName,
+      ),
+    );
+  } else {
+    Get.put<IAuthenticationSource>(LocalAuthenticationSourceService());
+  }
+  Get.put<IAuthRepository>(AuthRepository(Get.find<IAuthenticationSource>()));
+  Get.put(AuthenticationUseCase(Get.find<IAuthRepository>()));
+  Get.put(AuthenticationController(Get.find<AuthenticationUseCase>()));
+
+  // ===== COURSES =====
   Get.put<LocalCourseSource>(LocalCourseSource());
   Get.put<ICourseSource>(Get.find<LocalCourseSource>());
-  Get.put<ICourseRepository>(CourseRepository(Get.find()));
-  Get.put(CourseUseCase(Get.find()));
+  Get.put<ICourseRepository>(CourseRepository(Get.find<ICourseSource>()));
+  Get.put(CourseUseCase(Get.find<ICourseRepository>()));
   Get.lazyPut(() => CourseController());
 
 // Groups
@@ -84,6 +106,7 @@ Get.put<CategoryUseCase>(CategoryUseCase(
 ));
 Get.put<CategoryController>(CategoryController(Get.find<CategoryUseCase>()));
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
