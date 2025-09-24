@@ -1,5 +1,6 @@
 import 'package:f_clean_template/features/categories/ui/controller/category_controller.dart';
 import 'package:f_clean_template/features/categories/ui/pages/CategoryEditPage.dart';
+import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_theme.dart';
@@ -7,6 +8,7 @@ import '../controller/course_controller.dart';
 import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
 import 'package:f_clean_template/features/categories/domain/models/activity.dart';
+import 'package:f_clean_template/features/groups/domain/models/group.dart';
 
 class CourseEnrollmentPage extends StatefulWidget {
   final String courseId;
@@ -29,6 +31,7 @@ class CourseEnrollmentPage extends StatefulWidget {
 class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
   final CourseController courseController = Get.find();
   final CategoryController categoryController = Get.find();
+  final GroupController groupController = Get.find();
   Category? _selectedCategory;
   final ScrollController _scrollController = ScrollController();
 
@@ -46,9 +49,19 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
     // Espera a que las categorías se carguen y selecciona la primera si existe
     ever<List<Category>>(categoryController.categories, (cats) {
       if (cats.isNotEmpty && _selectedCategory == null) {
-        setState(() => _selectedCategory = cats.first);
+        setState(() {
+          _selectedCategory = cats.first;
+          // Cargar grupos para la categoría seleccionada
+          groupController.loadGroupsByCategory(_selectedCategory!.id);
+        });
       }
     });
+  }
+
+  // Método para cambiar categoría seleccionada
+  void _selectCategory(Category category) {
+    setState(() => _selectedCategory = category);
+    groupController.loadGroupsByCategory(category.id);
   }
 
   @override
@@ -220,7 +233,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
   }
 
   Widget _buildGroupCard({
-    required dynamic group,
+    required Group group,
     required Color accent,
     required Color cardBg,
     required VoidCallback onTap,
@@ -253,12 +266,28 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    group.name ?? 'Grupo sin nombre',
+                    'Grupo ${group.number}',
                     style: const TextStyle(
                       fontFamily: "Poppins",
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: accent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${group.members.length} miembros',
+                    style: TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: accent,
                     ),
                   ),
                 ),
@@ -302,16 +331,41 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                 ),
               ],
             ),
-            const SizedBox(width: 8),
-            if (group.description != null && group.description.isNotEmpty)
+            const SizedBox(height: 12),
+            // Lista de miembros del grupo
+            if (group.members.isNotEmpty) ...[
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: group.members.map((member) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      member.email.split('@')[0], // Mostrar solo la parte antes del @
+                      style: const TextStyle(
+                        fontFamily: "Poppins",
+                        fontSize: 11,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ] else ...[
               Text(
-                group.description,
+                'Sin miembros asignados',
                 style: TextStyle(
                   fontFamily: "Poppins",
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
                 ),
               ),
+            ],
           ],
         ),
       ),
@@ -355,7 +409,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
     );
   }
 
-  void _showDeleteGroupDialog(dynamic group) {
+  void _showDeleteGroupDialog(Group group) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -365,7 +419,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
           style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600),
         ),
         content: Text(
-          "¿Estás seguro de que deseas eliminar '${group.name ?? 'este grupo'}'?",
+          "¿Estás seguro de que deseas eliminar el 'Grupo ${group.number}'?",
           style: const TextStyle(fontFamily: "Poppins", fontSize: 14),
         ),
         actions: [
@@ -374,13 +428,16 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
             child: const Text("Cancelar"),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(ctx).pop();
+              final success = await groupController.deleteGroup(group.id);
               Get.snackbar(
-                "Grupo Eliminado",
-                "'${group.name ?? 'Grupo'}' ha sido eliminado",
+                success ? "Grupo Eliminado" : "Error",
+                success 
+                  ? "'Grupo ${group.number}' ha sido eliminado"
+                  : "No se pudo eliminar el grupo",
                 snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red,
+                backgroundColor: success ? Colors.red : Colors.orange,
                 colorText: Colors.white,
               );
             },
@@ -666,7 +723,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                                         accent: accent,
                                         cardBg: cardBg,
                                         onTap: () {
-                                          setState(() => _selectedCategory = category);
+                                          _selectCategory(category);
                                         },
                                         onEdit: () async {
                                           await Get.to(() => CategoryEditPage(
@@ -797,6 +854,194 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                             }
                           },
                         ),
+
+                        // Groups Section
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Grupos - ${_selectedCategory!.name}',
+                                style: const TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Get.snackbar(
+                                  "Próximamente",
+                                  "Creación de grupos estará disponible pronto",
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: accent,
+                                  colorText: Colors.white,
+                                );
+                              },
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text("Grupo"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: accent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Groups List
+                        Obx(() {
+                          if (groupController.isLoading) {
+                            return Container(
+                              padding: const EdgeInsets.all(32),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+
+                          final groups = groupController.groupsForSelectedCategory;
+                          if (groups.isEmpty) {
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.groups_outlined,
+                                      size: 48, color: Colors.grey[400]),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No hay grupos en esta categoría',
+                                    style: TextStyle(
+                                      fontFamily: "Poppins",
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Crea grupos para organizar a los estudiantes en equipos de trabajo',
+                                    style: TextStyle(
+                                      fontFamily: "Poppins",
+                                      fontSize: 12,
+                                      color: Colors.grey[500],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            return Column(
+                              children: [
+                                // Información de resumen de grupos
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: accent.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: accent.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                            '${groupController.totalGroupsInCategory}',
+                                            style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                              color: accent,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Grupos',
+                                            style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        height: 30,
+                                        width: 1,
+                                        color: Colors.grey[300],
+                                      ),
+                                      Column(
+                                        children: [
+                                          Text(
+                                            '${groupController.totalMembersInCategory}',
+                                            style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                              color: accent,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Miembros',
+                                            style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                
+                                // Lista de grupos
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: groups.length,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: _buildGroupCard(
+                                        group: groups[index],
+                                        accent: accent,
+                                        cardBg: cardBg,
+                                        onTap: () {
+                                          Get.snackbar(
+                                            "Próximamente",
+                                            "Navegación a detalles del grupo estará disponible pronto",
+                                            snackPosition: SnackPosition.BOTTOM,
+                                            backgroundColor: accent,
+                                            colorText: Colors.white,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          }
+                        }),
                       ],
 
                       const SizedBox(height: 24),

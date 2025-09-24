@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:f_clean_template/features/categories/domain/use_case/category_usecase.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
-import 'package:f_clean_template/features/categories/domain/models/group.dart';
+import 'package:f_clean_template/features/groups/domain/models/group.dart';
 import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 
 class CategoryController extends GetxController {

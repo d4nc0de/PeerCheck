@@ -113,7 +113,6 @@ class _AddCoursePageState extends State<AddCoursePage> {
     final CourseController courseController = Get.find();
     final palette = Theme.of(context).extension<RolePalette>()!;
     final accentColor = palette.profesorAccent;
-    final cardColor = palette.profesorCard;
     final surfaceColor = palette.surfaceSoft;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;

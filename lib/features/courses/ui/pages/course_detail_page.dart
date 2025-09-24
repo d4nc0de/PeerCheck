@@ -2,6 +2,10 @@ import 'package:f_clean_template/features/categories/ui/controller/category_cont
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
 import 'package:f_clean_template/features/categories/domain/models/activity.dart';
 import 'package:f_clean_template/features/courses/ui/controller/course_controller.dart';
+import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
+import 'package:f_clean_template/features/groups/domain/models/group.dart';
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/auth/ui/controller/authentication_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_theme.dart';
@@ -27,6 +31,8 @@ class CourseDetailPage extends StatefulWidget {
 class _CourseDetailPageState extends State<CourseDetailPage> {
   final CourseController courseController = Get.find();
   final CategoryController categoryController = Get.find();
+  final GroupController groupController = Get.find();
+  final AuthenticationController authController = Get.find();
   Category? _selectedCategory;
   final ScrollController _scrollController = ScrollController();
 
@@ -43,6 +49,8 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     ever<List<Category>>(categoryController.categories, (cats) {
       if (cats.isNotEmpty && _selectedCategory == null) {
         setState(() => _selectedCategory = cats.first);
+        // Cargar grupos de la primera categoría
+        groupController.loadGroupsByCategory(cats.first.id);
       }
     });
   }
@@ -51,6 +59,202 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  // Método para obtener el usuario actual
+  String _getCurrentUserEmail() {
+    return authController.currentUser.value?.email ?? '';
+  }
+
+  Widget _buildNoGroupCard(Color accent, Color cardBg) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.group_off_outlined,
+            size: 48,
+            color: Colors.orange[600],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No perteneces a ningún grupo',
+            style: TextStyle(
+              fontFamily: "Poppins",
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.orange[700],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Debes formar parte de un grupo para poder ver y realizar las actividades de esta categoría.',
+            style: TextStyle(
+              fontFamily: "Poppins",
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              Get.to(() => GroupListPage(
+                    courseId: widget.courseId,
+                    courseName: widget.courseName,
+                  ));
+            },
+            icon: const Icon(Icons.groups, size: 18),
+            label: const Text(
+              'Ver Grupos Disponibles',
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange[600],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserGroupCard(Group userGroup, Color accent, Color cardBg) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.group, color: accent, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Mi Grupo',
+                style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Grupo ${userGroup.number}',
+                style: const TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${userGroup.members.length} miembro${userGroup.members.length != 1 ? 's' : ''}',
+                style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Get.to(() => MyGroupPage(
+                              courseId: widget.courseId,
+                              courseName: widget.courseName,
+                            ));
+                      },
+                      icon: const Icon(Icons.visibility, size: 16),
+                      label: const Text(
+                        'Ver Mi Grupo',
+                        style: TextStyle(
+                          fontFamily: "Poppins",
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Get.to(() => GroupListPage(
+                              courseId: widget.courseId,
+                              courseName: widget.courseName,
+                            ));
+                      },
+                      icon: Icon(Icons.groups_2_outlined, color: accent, size: 16),
+                      label: Text(
+                        'Otros Grupos',
+                        style: TextStyle(
+                          fontFamily: "Poppins",
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: accent,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: accent),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildActivityCard({
@@ -293,107 +497,12 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Quick Actions
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: accent.withOpacity(0.2)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.dashboard_outlined, color: accent, size: 20),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Acciones Rápidas',
-                                  style: TextStyle(
-                                    fontFamily: "Poppins",
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    Get.to(() => MyGroupPage(
-                                          courseId: widget.courseId,
-                                          courseName: widget.courseName,
-                                        ));
-                                  },
-                                  icon: const Icon(Icons.group, size: 18),
-                                  label: Text(
-                                    group?.name ?? 'Mi Grupo',
-                                    style: const TextStyle(
-                                      fontFamily: "Poppins",
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: accent,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                  ),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    Get.to(() => GroupListPage(
-                                          courseId: widget.courseId,
-                                          courseName: widget.courseName,
-                                        ));
-                                  },
-                                  icon: Icon(Icons.groups_2_outlined, color: accent, size: 18),
-                                  label: Text(
-                                    'Lista de Grupos',
-                                    style: TextStyle(
-                                      fontFamily: "Poppins",
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: accent,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: accent),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
                       // Category Filter
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Filtrar por Categoría',
+                            'Seleccionar Categoría',
                             style: TextStyle(
                               fontFamily: "Poppins",
                               fontSize: 16,
@@ -461,97 +570,158 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                         ),
                                       ))
                                   .toList(),
-                              onChanged: (c) => setState(() => _selectedCategory = c),
+                              onChanged: (c) {
+                                setState(() => _selectedCategory = c);
+                                if (c != null) {
+                                  groupController.loadGroupsByCategory(c.id);
+                                }
+                              },
                             ),
                           ),
                         );
                       }),
                       const SizedBox(height: 24),
 
-                      // Activities Section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _selectedCategory != null
-                                  ? 'Actividades - ${_selectedCategory!.name}'
-                                  : 'Actividades',
-                              style: const TextStyle(
+                      // User Group Status Section
+                      if (_selectedCategory != null) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Estado del Grupo',
+                              style: TextStyle(
                                 fontFamily: "Poppins",
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black87,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
 
-                      // Activities Grid
-                      Builder(
-                        builder: (context) {
-                          final activities = _selectedCategory?.activities ?? [];
-                          if (activities.isEmpty) {
+                        // Group Status Card
+                        Obx(() {
+                          if (groupController.isLoading) {
                             return Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.all(40),
+                              padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 color: cardBg,
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.assignment_outlined,
-                                      size: 48, color: Colors.grey[400]),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    _selectedCategory != null
-                                        ? 'No hay actividades en esta categoría'
-                                        : 'Selecciona una categoría para ver las actividades',
-                                    style: TextStyle(
-                                      fontFamily: "Poppins",
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Las actividades aparecerán aquí cuando estén disponibles',
-                                    style: TextStyle(
-                                      fontFamily: "Poppins",
-                                      fontSize: 12,
-                                      color: Colors.grey[500],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
+                              child: const Center(
+                                child: CircularProgressIndicator(),
                               ),
                             );
                           }
 
-                          return GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: activities.length,
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: screenWidth > 600 ? 3 : 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 0.85,
-                            ),
-                            itemBuilder: (context, index) {
-                              return _buildActivityCard(
-                                activity: activities[index],
-                                accent: accent,
-                                cardBg: cardBg,
-                              );
-                            },
+                          final userEmail = _getCurrentUserEmail();
+                          final userGroup = groupController.getStudentGroup(userEmail);
+
+                          if (userGroup == null) {
+                            return _buildNoGroupCard(accent, cardBg);
+                          } else {
+                            return _buildUserGroupCard(userGroup, accent, cardBg);
+                          }
+                        }),
+                        const SizedBox(height: 24),
+
+                        // Activities Section (solo si tiene grupo)
+                        Obx(() {
+                          final userEmail = _getCurrentUserEmail();
+                          final userGroup = groupController.getStudentGroup(userEmail);
+                          
+                          if (userGroup == null) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Actividades - ${_selectedCategory!.name}',
+                                      style: const TextStyle(
+                                        fontFamily: "Poppins",
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Activities Grid
+                              Builder(
+                                builder: (context) {
+                                  final activities = _selectedCategory?.activities ?? [];
+                                  if (activities.isEmpty) {
+                                    return Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: cardBg,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.assignment_outlined,
+                                              size: 48, color: Colors.grey[400]),
+                                          const SizedBox(height: 12),
+                                          Text(
+                                            'No hay actividades disponibles en esta categoría',
+                                            style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Las actividades aparecerán aquí cuando estén disponibles',
+                                            style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontSize: 12,
+                                              color: Colors.grey[500],
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+
+                                  return GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: activities.length,
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: screenWidth > 600 ? 3 : 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 0.85,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      return _buildActivityCard(
+                                        activity: activities[index],
+                                        accent: accent,
+                                        cardBg: cardBg,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
                           );
-                        },
-                      ),
+                        }),
+                      ],
                       const SizedBox(height: 40),
                     ],
                   ),

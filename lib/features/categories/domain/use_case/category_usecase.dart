@@ -1,27 +1,30 @@
-import 'dart:math';
 import 'dart:math' as math;
+import 'package:f_clean_template/features/groups/domain/use_case/group_usecase.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 import 'package:f_clean_template/features/auth/ui/controller/authentication_controller.dart';
 import 'package:f_clean_template/features/courses/ui/controller/course_controller.dart';
 import 'package:f_clean_template/features/categories/data/repositories/category_repository.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
-import 'package:f_clean_template/features/categories/domain/models/group.dart';
+import 'package:f_clean_template/features/groups/domain/models/group.dart';
+
+
 
 class CategoryUseCase {
   final LocalCategoryRepository categoryRepository;
+  final GroupUseCase groupUseCase; // ✅ Inyección por constructor
   final CourseController courseController = Get.find();
   final AuthenticationController authController = Get.find();
 
   CategoryUseCase({
     required this.categoryRepository,
+    required this.groupUseCase, // ✅ Requerido en constructor
   });
 
   // -------------------- CRUD Categorías --------------------
   
   Future<List<Category>> getCategories() async {
     return await categoryRepository.getCategories();
-
   }
 
   Future<void> addCategory({
@@ -42,35 +45,43 @@ class CategoryUseCase {
       AuthenticationUser(
         id: email,
         email: email,
-        name: _extractNameFromEmail(email), password: '',
+        name: _extractNameFromEmail(email), 
+        password: '',
       )
     ).toList();
 
-    // Crear los grupos según el groupingMethod
-    final groups = <Group>[];
-
-    //if (groupingMethod == 1) {
-      // Autoasignación: se crean grupos vacíos
-     // final totalGroups = (students.length / groupSize).ceil();
-     // for (int i = 0; i < totalGroups; i++) {
-      //  groups.add(_createGroup(i + 1, []));
-    //  }
-   // } else if (groupingMethod == 2) {
-      // Aleatorio: se crean grupos y se asignan estudiantes
-    //  groups.addAll(_createRandomGroups(students, groupSize));
-    //}
-
+    // Crear la categoría primero
+    final categoryId = "cat_${DateTime.now().millisecondsSinceEpoch}";
+    
     final newCategory = Category(
-      id: "cat_${DateTime.now().millisecondsSinceEpoch}",
+      id: categoryId,
       name: name,
-      groups: groups,
+      groups: [], // Los grupos se crearán por separado
       activities: [],
       evaluations: [],
       groupingMethod: groupingMethod,
       courseId: courseId
     );
 
+    // Guardar la categoría
     await categoryRepository.addCategory(newCategory);
+
+    // Crear los grupos usando GroupUseCase
+    if (groupingMethod == 1) {
+      // Autoasignación: se crean grupos vacíos
+      final totalGroups = (students.length / groupSize).ceil();
+      await groupUseCase.createEmptyGroups(
+        categoryId: categoryId,
+        totalGroups: totalGroups,
+      );
+    } else if (groupingMethod == 2) {
+      // Aleatorio: se crean grupos y se asignan estudiantes
+      await groupUseCase.createRandomGroups(
+        categoryId: categoryId,
+        students: students,
+        groupSize: groupSize,
+      );
+    }
   }
 
   Future<void> updateCategory(Category category) async {
@@ -78,35 +89,14 @@ class CategoryUseCase {
   }
 
   Future<void> removeCategory(String categoryId) async {
+    // Primero eliminar todos los grupos de esta categoría
+    await groupUseCase.removeGroupsByCategory(categoryId);
+    
+    // Luego eliminar la categoría
     await categoryRepository.removeCategory(categoryId);
   }
 
-  // -------------------- Lógica de grupos --------------------
-
-  Group _createGroup(int number, List<AuthenticationUser> members) {
-    return Group(
-      number: number, 
-      members: members, 
-      id: 'group_${DateTime.now().millisecondsSinceEpoch}_$number'
-    );
-  }
-
-  List<Group> _createRandomGroups(List<AuthenticationUser> students, int groupSize) {
-    final List<Group> groups = [];
-    final random = Random();
-    final pool = List<AuthenticationUser>.from(students)..shuffle(random);
-
-    int groupNumber = 1;
-    while (pool.isNotEmpty) {
-      final membersCount = math.min(groupSize, pool.length);
-      final members = pool.take(membersCount).toList();
-      pool.removeRange(0, membersCount);
-      groups.add(_createGroup(groupNumber, members));
-      groupNumber++;
-    }
-
-    return groups;
-  }
+  // -------------------- Métodos auxiliares --------------------
 
   /// Extrae un nombre del email para crear usuarios
   String _extractNameFromEmail(String email) {
@@ -130,19 +120,16 @@ class CategoryUseCase {
     return allCategories.where((c) => c.courseId == courseId).toList();
   }
 
-  /// Obtiene los grupos de todas las categorías que tienen miembros inscritos en el curso dado
+  /// Obtiene los grupos de todas las categorías de un curso
   Future<Map<Category, List<Group>>> getGroupsByCourse(String courseId) async {
-    final allCategories = await categoryRepository.getCategories();
-    final enrolledEmails = courseController.getEnrolledUsers(courseId).toSet();
+    final allCategories = await getCategoriesWithGroupsByCourse(courseId);
     final Map<Category, List<Group>> result = {};
 
     for (final category in allCategories) {
-      final groupsInCourse = category.groups
-          .where((group) => group.members.any((u) => enrolledEmails.contains(u.email)))
-          .toList();
-
-      if (groupsInCourse.isNotEmpty) {
-        result[category] = groupsInCourse;
+      // Obtener grupos usando GroupUseCase
+      final groups = await groupUseCase.getGroupsByCategory(category.id);
+      if (groups.isNotEmpty) {
+        result[category] = groups;
       }
     }
 
@@ -174,34 +161,24 @@ class CategoryUseCase {
     required int groupNumber,
     required String studentEmail,
   }) async {
-    final categories = await categoryRepository.getCategories();
-    final categoryIndex = categories.indexWhere((c) => c.id == categoryId);
+    // Obtener todos los grupos de la categoría
+    final groups = await groupUseCase.getGroupsByCategory(categoryId);
     
-    if (categoryIndex == -1) {
-      throw Exception('Categoría no encontrada');
-    }
-
-    final category = categories[categoryIndex];
-    final groupIndex = category.groups.indexWhere((g) => g.number == groupNumber);
-    
-    if (groupIndex == -1) {
+    // Encontrar el grupo por número
+    final targetGroup = groups.where((g) => g.number == groupNumber).firstOrNull;
+    if (targetGroup == null) {
       throw Exception('Grupo no encontrado');
     }
 
-    // Crear el estudiante
-    final student = AuthenticationUser(
-      id: studentEmail,
-      email: studentEmail,
-      name: _extractNameFromEmail(studentEmail), password: '',
-    );
-
     // Verificar si ya está en otro grupo de la misma categoría
-    for (int i = 0; i < category.groups.length; i++) {
-      final existingGroup = category.groups[i];
-      if (existingGroup.members.any((m) => m.email == studentEmail)) {
-        if (i != groupIndex) {
+    for (final group in groups) {
+      if (group.members.any((m) => m.email == studentEmail)) {
+        if (group.id != targetGroup.id) {
           // Remover del grupo actual
-          existingGroup.members.removeWhere((m) => m.email == studentEmail);
+          await groupUseCase.removeMemberFromGroup(
+            groupId: group.id,
+            studentEmail: studentEmail,
+          );
         } else {
           // Ya está en este grupo
           return;
@@ -210,8 +187,9 @@ class CategoryUseCase {
     }
 
     // Agregar al nuevo grupo
-    category.groups[groupIndex].members.add(student);
-    
-    await categoryRepository.updateCategory(category);
+    await groupUseCase.addMemberToGroup(
+      groupId: targetGroup.id,
+      studentEmail: studentEmail,
+    );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/category_controller.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
-import 'package:f_clean_template/features/categories/domain/models/group.dart';
+import 'package:f_clean_template/features/groups/domain/models/group.dart';
 
 class CategoryDetailPage extends StatelessWidget {
   final int categoryIndex;

@@ -1,4 +1,4 @@
-import 'group.dart';
+import '../../../groups/domain/models/group.dart';
 import 'activity.dart';
 import 'evaluation.dart';
 
@@ -6,7 +6,7 @@ class Category {
   final String id;
   final String name;
   final int groupingMethod; // 1 = autoasignación, 2 = aleatorio
-  final String courseId; // <-- nuevo campo para asociar con un curso
+  final String courseId; 
   final List<Group> groups;
   final List<Activity> activities;
   final List<Evaluation> evaluations;
@@ -15,7 +15,7 @@ class Category {
     required this.id,
     required this.name,
     required this.groupingMethod,
-    required this.courseId, // <-- requerido
+    required this.courseId, 
     this.groups = const [],
     this.activities = const [],
     this.evaluations = const [],

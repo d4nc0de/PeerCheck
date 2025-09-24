@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:f_clean_template/features/categories/data/datasources/local/i_category_source.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../domain/repositories/i_category_source.dart';
+import '../../domain/repositories/i_category_repository.dart';
 
 
 class LocalCategoryRepository implements ICategoryRepository {
