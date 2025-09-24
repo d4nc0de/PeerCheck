@@ -31,15 +31,11 @@ class AuthenticationController extends GetxController {
     }
   }
 
-  Future<void> signup(String name, String email, String password) async {
+  Future<AuthenticationUser?> signup(String name, String email, String password) async {
     try {
-      isLoading.value = true;
-      final user = await useCase.signup(name, email, password);
-      currentUser.value = user;
-    } catch (e) {
+      return await useCase.signup(name, email, password);
+    } catch (_) {
       rethrow;
-    } finally {
-      isLoading.value = false;
     }
   }
 

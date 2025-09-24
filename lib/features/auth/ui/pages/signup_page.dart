@@ -1,3 +1,4 @@
+import 'package:f_clean_template/central.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
@@ -72,17 +73,20 @@ class _SignUpPageState extends State<SignUpPage> {
   ) async {
     try {
       final fullName = '${firstName.trim()} ${lastName.trim()}'.trim();
-      await authenticationController.signup(fullName, theEmail, thePassword);
+      final user = await authenticationController.signup(fullName, theEmail, thePassword);
 
-      Get.snackbar(
-        "Crear cuenta",
-        'Cuenta creada exitosamente',
-        icon: const Icon(Icons.check_circle, color: Colors.green),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Si user no es null, el login fue exitoso
+      if (user != null) {
+        Get.snackbar(
+          "Crear cuenta",
+          'Cuenta creada y sesión iniciada como ${user.name}',
+          icon: const Icon(Icons.check_circle, color: Colors.green),
+          snackPosition: SnackPosition.BOTTOM,
+        );
 
-      // Si deseas regresar al login automáticamente, descomenta:
-      // Get.back();
+        // 🔹 Ir al home (Central) porque login fue exitoso
+        if (mounted) Get.offAll(() => const Central());
+      }
     } catch (err) {
       logError('SignUp error $err');
       Get.snackbar(
@@ -93,6 +97,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
