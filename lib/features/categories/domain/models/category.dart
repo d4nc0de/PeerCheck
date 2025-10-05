@@ -1,73 +1,61 @@
-import '../../../groups/domain/models/group.dart';
-import 'activity.dart';
-import 'evaluation.dart';
+import 'package:f_clean_template/features/groups/domain/models/group.dart';
 
+/// Modelo que representa una categoría de un curso
 class Category {
   final String id;
+  final String courseId;
   final String name;
-  final int groupingMethod; // 1 = autoasignación, 2 = aleatorio
-  final String courseId; 
+  final String method; // método de agrupamiento (manual o aleatorio)
+  final int groupSize; // tamaño de grupo si aplica
   final List<Group> groups;
-  final List<Activity> activities;
-  final List<Evaluation> evaluations;
 
   Category({
     required this.id,
+    required this.courseId,
     required this.name,
-    required this.groupingMethod,
-    required this.courseId, 
+    required this.method,
+    required this.groupSize,
     this.groups = const [],
-    this.activities = const [],
-    this.evaluations = const [],
   });
 
-  factory Category.fromJson(Map<String, dynamic> json) {
-    // Validación de campos requeridos
-    final String? id = json['id']?.toString();
-    final String? name = json['name']?.toString();
-    final String? courseId = json['courseId']?.toString();
-    
-    if (id == null || id.isEmpty) {
-      throw ArgumentError('Category: campo "id" es requerido y no puede ser null o vacío');
-    }
-    
-    if (name == null || name.isEmpty) {
-      throw ArgumentError('Category: campo "name" es requerido y no puede ser null o vacío');
-    }
-    
-    if (courseId == null || courseId.isEmpty) {
-      throw ArgumentError('Category: campo "courseId" es requerido y no puede ser null o vacío');
-    }
-
+  Category copyWith({
+    String? id,
+    String? courseId,
+    String? name,
+    String? method,
+    int? groupSize,
+    List<Group>? groups,
+  }) {
     return Category(
-      id: id,
-      name: name,
-      groupingMethod: json['groupingMethod'] ?? 1,
-      courseId: courseId,
-      groups: (json['groups'] as List<dynamic>?)
-              ?.map((g) => Group.fromJson(g))
-              .toList() ??
-          [],
-      activities: (json['activities'] as List<dynamic>?)
-              ?.map((a) => Activity.fromJson(a))
-              .toList() ??
-          [],
-      evaluations: (json['evaluations'] as List<dynamic>?)
-              ?.map((e) => Evaluation.fromJson(e))
-              .toList() ??
-          [],
+      id: id ?? this.id,
+      courseId: courseId ?? this.courseId,
+      name: name ?? this.name,
+      method: method ?? this.method,
+      groupSize: groupSize ?? this.groupSize,
+      groups: groups ?? this.groups,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'groupingMethod': groupingMethod,
-      'courseId': courseId, 
-      'groups': groups.map((g) => g.toJson()).toList(),
-      'activities': activities.map((a) => a.toJson()).toList(),
-      'evaluations': evaluations.map((e) => e.toJson()).toList(),
-    };
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'courseId': courseId,
+        'name': name,
+        'method': method,
+        'groupSize': groupSize,
+        'groups': groups.map((g) => g.toJson()).toList(),
+      };
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      id: json['id'],
+      courseId: json['courseId'],
+      name: json['name'],
+      method: json['method'],
+      groupSize: json['groupSize'],
+      groups: (json['groups'] as List?)
+              ?.map((g) => Group.fromJson(Map<String, dynamic>.from(g)))
+              .toList() ??
+          [],
+    );
   }
 }

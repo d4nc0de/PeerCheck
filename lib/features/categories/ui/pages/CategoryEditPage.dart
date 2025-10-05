@@ -21,15 +21,17 @@ class CategoryEditPage extends StatefulWidget {
 class _CategoryEditPageState extends State<CategoryEditPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late int _groupingMethod;
+  late String _method;
+  late int _groupSize;
   bool _isLoading = false;
-  final CategoryController _categoryController = Get.find();
+  final CategoryController _controller = Get.find();
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category.name);
-    _groupingMethod = widget.category.groupingMethod;
+    _method = widget.category.method;
+    _groupSize = widget.category.groupSize;
   }
 
   @override
@@ -40,26 +42,19 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
 
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
-      // Crear categoría actualizada
-      final updatedCategory = Category(
+      final updated = Category(
         id: widget.category.id,
         name: _nameController.text.trim(),
-        groupingMethod: _groupingMethod,
+        method: _method,
+        groupSize: _groupSize,
         courseId: widget.category.courseId,
-        groups: widget.category.groups,
-        activities: widget.category.activities,
-        evaluations: widget.category.evaluations,
       );
 
-      // Actualizar en el controller (necesitarás implementar este método)
-      await _categoryController.updateCategory(updatedCategory);
-
-      // Recargar categorías
-      await _categoryController.loadCategoriesWithGroups(widget.courseId);
+      await _controller.updateCategory(widget.courseId, updated);
+      await _controller.loadCategories(widget.courseId);
 
       Get.back();
       Get.snackbar(
@@ -72,7 +67,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'No se pudo actualizar la categoría: ${e.toString()}',
+        'No se pudo actualizar la categoría: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -86,43 +81,9 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          "Eliminar Categoría",
-          style: TextStyle(
-            fontFamily: "Poppins",
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "¿Estás seguro de que deseas eliminar '${widget.category.name}'?",
-              style: const TextStyle(
-                fontFamily: "Poppins",
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                "Esta acción no se puede deshacer. Se eliminarán todas las actividades y evaluaciones asociadas.",
-                style: TextStyle(
-                  fontFamily: "Poppins",
-                  fontSize: 12,
-                  color: Colors.red,
-                ),
-              ),
-            ),
-          ],
-        ),
+        title: const Text("Eliminar Categoría"),
+        content: Text(
+            "¿Seguro que deseas eliminar '${widget.category.name}'? Esta acción no se puede deshacer."),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -130,13 +91,8 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Text(
-              "Eliminar",
-              style: TextStyle(color: Colors.white),
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Eliminar"),
           ),
         ],
       ),
@@ -146,21 +102,13 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       setState(() => _isLoading = true);
 
       try {
-        await _categoryController.removeCategory(widget.category.id, widget.courseId);
-        await _categoryController.loadCategoriesWithGroups(widget.courseId);
+        await _controller.removeCategory(widget.courseId, widget.category.id);
+        await _controller.loadCategories(widget.courseId);
 
-        Get.back(); // Salir de la página de edición
+        Get.back();
         Get.snackbar(
           'Categoría Eliminada',
           "'${widget.category.name}' ha sido eliminada",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      } catch (e) {
-        Get.snackbar(
-          'Error',
-          'No se pudo eliminar la categoría: ${e.toString()}',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -174,27 +122,19 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
   @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).extension<RolePalette>()!;
-    final Color accent = palette.profesorAccent;
-    final Color cardBg = palette.profesorCard;
-    final Color surface = palette.surfaceSoft;
+    final accent = palette.profesorAccent;
+    final cardBg = palette.profesorCard;
 
     return Scaffold(
-      backgroundColor: surface,
+      backgroundColor: palette.surfaceSoft,
       appBar: AppBar(
         backgroundColor: accent,
         foregroundColor: Colors.white,
-        title: const Text(
-          'Editar Categoría',
-          style: TextStyle(
-            fontFamily: "Poppins",
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: const Text('Editar Categoría'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: _isLoading ? null : _deleteCategory,
-            tooltip: 'Eliminar categoría',
           ),
         ],
       ),
@@ -203,199 +143,54 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Información básica
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline, color: accent, size: 24),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Información Básica',
-                          style: TextStyle(
-                            fontFamily: "Poppins",
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Nombre de la categoría
                     TextFormField(
                       controller: _nameController,
-                      enabled: !_isLoading,
-                      decoration: InputDecoration(
-                        labelText: 'Nombre de la categoría *',
-                        prefixIcon: const Icon(Icons.category),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: accent, width: 2),
-                        ),
-                      ),
-                      style: const TextStyle(fontFamily: "Poppins"),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'El nombre es obligatorio';
-                        }
-                        if (value.trim().length < 3) {
-                          return 'El nombre debe tener al menos 3 caracteres';
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Requerido' : null,
+                      decoration:
+                          const InputDecoration(labelText: 'Nombre categoría'),
                     ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Configuración de agrupación
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.group, color: accent, size: 24),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Método de Agrupación',
-                          style: TextStyle(
-                            fontFamily: "Poppins",
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Método de agrupación
-                    DropdownButtonFormField<int>(
-                      value: _groupingMethod,
-                      decoration: InputDecoration(
-                        labelText: 'Método de agrupación',
-                        prefixIcon: const Icon(Icons.settings),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: accent, width: 2),
-                        ),
-                      ),
-                      style: const TextStyle(
-                        fontFamily: "Poppins",
-                        color: Colors.black87,
-                      ),
+                    const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      value: _method,
+                      decoration:
+                          const InputDecoration(labelText: 'Método agrupación'),
                       items: const [
-                        DropdownMenuItem(
-                          value: 1,
-                          child: Text("Autoasignación"),
-                        ),
-                        DropdownMenuItem(
-                          value: 2,
-                          child: Text("Aleatorio"),
-                        ),
+                        DropdownMenuItem(value: "1", child: Text("Autoasignación")),
+                        DropdownMenuItem(value: "2", child: Text("Aleatorio")),
                       ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _groupingMethod = value);
-                        }
-                      },
+                      onChanged: (v) => setState(() => _method = v ?? "1"),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      initialValue: _groupSize.toString(),
+                      keyboardType: TextInputType.number,
+                      decoration:
+                          const InputDecoration(labelText: 'Tamaño por grupo'),
+                      onChanged: (v) =>
+                          _groupSize = int.tryParse(v.trim()) ?? _groupSize,
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              const SizedBox(height: 32),
-
-              // Botones de acción
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isLoading ? null : () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: accent),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cancelar',
-                        style: TextStyle(fontFamily: "Poppins"),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Guardar Cambios',
-                              style: TextStyle(
-                                fontFamily: "Poppins",
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
+              ElevatedButton(
+                onPressed: _isLoading ? null : _saveChanges,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accent,
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: const Text("Guardar cambios"),
               ),
             ],
           ),
@@ -403,5 +198,5 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       ),
     );
   }
-
 }
+

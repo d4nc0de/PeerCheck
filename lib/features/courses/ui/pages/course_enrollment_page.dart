@@ -7,7 +7,6 @@ import 'package:f_clean_template/core/app_theme.dart';
 import '../controller/course_controller.dart';
 import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
-import 'package:f_clean_template/features/categories/domain/models/activity.dart';
 import 'package:f_clean_template/features/groups/domain/models/group.dart';
 
 class CourseEnrollmentPage extends StatefulWidget {

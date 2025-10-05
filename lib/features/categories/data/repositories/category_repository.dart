@@ -1,63 +1,38 @@
-import 'dart:convert';
 import 'package:f_clean_template/features/categories/data/datasources/local/i_category_source.dart';
-import 'package:f_clean_template/features/categories/domain/models/category.dart' as domain;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../domain/repositories/i_category_repository.dart';
+import 'package:f_clean_template/features/categories/domain/models/category.dart';
+import 'package:f_clean_template/features/categories/domain/repositories/i_category_repository.dart';
 
-
+/// Implementación local del repositorio de categorías.
+/// Se comunica con la fuente local (SharedPreferences, Hive, etc.)
 class LocalCategoryRepository implements ICategoryRepository {
-  final String _storageKey = 'categories';
+  final ICategorySource localSource;
 
-  LocalCategoryRepository(ICategorySource find);
+  LocalCategoryRepository(this.localSource);
 
+  /// Obtiene todas las categorías de un curso específico
   @override
-  Future<List<domain.Category>> getCategories() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_storageKey);
-
-    if (jsonString != null) {
-      final List<dynamic> decoded = json.decode(jsonString);
-      return decoded.map((c) => domain.Category.fromJson(c)).toList();
-    }
-
-    print("📂 Leyendo categorías desde storage:");
-    print(jsonString);
-    return [];
+  Future<List<Category>> getCategoriesByCourse(String courseId) async {
+    return await localSource.getCategoriesByCourse(courseId);
   }
 
+  /// Agrega una nueva categoría
   @override
-  Future<void> addCategory(domain.Category category) async {
-    final prefs = await SharedPreferences.getInstance();
-    final categories = await getCategories();
-    categories.add(category);
-
-    final jsonString = json.encode(categories.map((c) => c.toJson()).toList());
-    print("📦 Guardando categorías en storage:");
-    print(jsonString); // 👈 aquí ves si incluye id, name, courseId, etc.
-    await prefs.setString(_storageKey, jsonString);
+  Future<void> addCategory(Category category) async {
+    return await localSource.addCategory(category);
   }
 
+  /// Actualiza una categoría existente
   @override
-  Future<void> updateCategory(domain.Category updatedCategory) async {
-    final prefs = await SharedPreferences.getInstance();
-    final categories = await getCategories();
-
-    final index = categories.indexWhere((c) => c.id == updatedCategory.id);
-    if (index != -1) {
-      categories[index] = updatedCategory;
-      final jsonString =
-          json.encode(categories.map((c) => c.toJson()).toList());
-      await prefs.setString(_storageKey, jsonString);
-    }
+  Future<void> updateCategory(Category category) async {
+    return await localSource.updateCategory(category);
   }
 
+  /// Elimina una categoría por ID
   @override
   Future<void> removeCategory(String categoryId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final categories = await getCategories();
-    categories.removeWhere((c) => c.id == categoryId);
-
-    final jsonString = json.encode(categories.map((c) => c.toJson()).toList());
-    await prefs.setString(_storageKey, jsonString);
+    return await localSource.removeCategory(categoryId);
   }
 }
+
+
+

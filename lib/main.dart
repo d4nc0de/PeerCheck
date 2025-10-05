@@ -65,7 +65,7 @@ void initDependencies() {
   Get.put(http.Client(), tag: 'apiClient');
   final client = Get.find<http.Client>(tag: 'apiClient');
 
-  const useRemote = true; // 👈 cambia a false para usar local
+  const useRemote = false; // 👈 cambia a false para usar local
 
   if (useRemote) {
     Get.put<IAuthenticationSource>(

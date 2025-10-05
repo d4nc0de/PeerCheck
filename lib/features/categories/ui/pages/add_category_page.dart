@@ -4,7 +4,7 @@ import '../controller/category_controller.dart';
 import 'CategoryListPage.dart';
 
 class AddCategoryPage extends StatefulWidget {
-  final String courseId; // <-- Asegúrate de pasar el courseId
+  final String courseId;
 
   const AddCategoryPage({super.key, required this.courseId});
 
@@ -15,8 +15,7 @@ class AddCategoryPage extends StatefulWidget {
 class _AddCategoryPageState extends State<AddCategoryPage> {
   final nameController = TextEditingController();
   final groupSizeController = TextEditingController();
-
-  String method = "Random";
+  String method = "2"; // por defecto Aleatorio
 
   @override
   Widget build(BuildContext context) {
@@ -30,24 +29,19 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: "Nombre de la categoría",
-              ),
+              decoration:
+                  const InputDecoration(labelText: "Nombre de la categoría"),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: method,
               items: const [
-                DropdownMenuItem(value: "Random", child: Text("Random")),
-                DropdownMenuItem(
-                  value: "Self-assigned",
-                  child: Text("Self-assigned"),
-                ),
+                DropdownMenuItem(value: "2", child: Text("Aleatorio")),
+                DropdownMenuItem(value: "1", child: Text("Autoasignación")),
               ],
               onChanged: (value) => setState(() => method = value!),
-              decoration: const InputDecoration(
-                labelText: "Método de agrupación",
-              ),
+              decoration:
+                  const InputDecoration(labelText: "Método de agrupación"),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -70,17 +64,14 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                   return;
                 }
 
-                final groupingMethod = method == "Random" ? 2 : 1;
-
                 await controller.addCategory(
                   name: name,
                   courseId: widget.courseId,
-                  groupingMethod: groupingMethod,
+                  method: method,
                   groupSize: groupSize,
                 );
 
-                // Navegar a la lista de categorías
-                Get.to(() => CategoryListPage(courseId: widget.courseId));
+                Get.off(() => CategoryListPage(courseId: widget.courseId));
               },
               child: const Text("Guardar"),
             ),
@@ -90,3 +81,5 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     );
   }
 }
+
+

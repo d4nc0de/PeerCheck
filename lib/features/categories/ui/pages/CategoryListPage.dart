@@ -2,22 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/features/categories/ui/controller/category_controller.dart';
 import 'add_category_page.dart';
-import 'CategoryDetailPage.dart';
+import 'CategoryEditPage.dart';
 
 class CategoryListPage extends StatelessWidget {
-  final String courseId; // Recibe el curso actual
+  final String courseId;
   final CategoryController controller = Get.find<CategoryController>();
 
   CategoryListPage({super.key, required this.courseId}) {
-    // Cargar categorías al abrir
-    controller.loadCategoriesWithGroups(courseId);
+    controller.loadCategories(courseId);
   }
 
-  String _groupingMethodText(int method) {
+  String _methodText(String method) {
     switch (method) {
-      case 1:
+      case "1":
         return "Autoasignación";
-      case 2:
+      case "2":
         return "Aleatorio";
       default:
         return "Desconocido";
@@ -46,12 +45,13 @@ class CategoryListPage extends StatelessWidget {
               child: ListTile(
                 title: Text(category.name),
                 subtitle: Text(
-                  "Método: ${_groupingMethodText(category.groupingMethod)}",
+                  "Método: ${_methodText(category.method)} | Grupos: ${category.groupSize}",
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  Get.to(() => CategoryDetailPage(categoryIndex: index));
-                },
+                trailing: const Icon(Icons.edit),
+                onTap: () => Get.to(() => CategoryEditPage(
+                      category: category,
+                      courseId: courseId,
+                    )),
               ),
             );
           },
@@ -60,11 +60,12 @@ class CategoryListPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Get.to(() => AddCategoryPage(courseId: courseId));
-          // Recargar categorías después de agregar
-          controller.loadCategoriesWithGroups(courseId);
+          controller.loadCategories(courseId);
         },
         child: const Icon(Icons.add),
       ),
     );
   }
 }
+
+

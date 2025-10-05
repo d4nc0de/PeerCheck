@@ -1,83 +1,67 @@
 import 'package:get/get.dart';
-import 'package:f_clean_template/features/categories/domain/use_case/category_usecase.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
-import 'package:f_clean_template/features/groups/domain/models/group.dart';
-import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/categories/domain/use_case/category_usecase.dart';
 
 class CategoryController extends GetxController {
   final CategoryUseCase useCase;
 
   CategoryController(this.useCase);
 
-  final RxList<Category> categories = <Category>[].obs;
-  final RxMap<Category, List<Group>> groupsByCourse = <Category, List<Group>>{}.obs;
-  final RxMap<Group, List<AuthenticationUser>> membersByCourse = <Group, List<AuthenticationUser>>{}.obs;
-  final RxBool isLoading = false.obs;
+  var categories = <Category>[].obs;
+  var isLoading = false.obs;
 
-  Future<void> loadCategoriesWithGroups(String courseId) async {
-    isLoading.value = true;
+  Future<void> loadCategories(String courseId) async {
     try {
-      categories.value = await useCase.getCategoriesWithGroupsByCourse(courseId);
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> loadGroupsByCourse(String courseId) async {
-    isLoading.value = true;
-    try {
-      groupsByCourse.value = await useCase.getGroupsByCourse(courseId);
-    } finally {
-      isLoading.value = false;
-    }
-  }
-  
-
-  Future<void> loadMembersByCourse(String courseId) async {
-    isLoading.value = true;
-    try {
-      membersByCourse.value = await useCase.getMembersByCourse(courseId);
+      isLoading.value = true;
+      final list = await useCase.getCategoriesByCourse(courseId);
+      categories.assignAll(list);
+    } catch (e) {
+      print("Error al cargar categorías: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> addCategory({
-    required String name,
     required String courseId,
-    required int groupingMethod,
+    required String name,
+    required String method,
     required int groupSize,
   }) async {
-    isLoading.value = true;
     try {
       await useCase.addCategory(
-        name: name,
         courseId: courseId,
-        groupingMethod: groupingMethod,
+        name: name,
+        method: method,
         groupSize: groupSize,
       );
-      await loadCategoriesWithGroups(courseId);
-    } finally {
-      isLoading.value = false;
+      await loadCategories(courseId);
+    } catch (e) {
+      print("Error al agregar categoría: $e");
     }
   }
 
-  Future<void> updateCategory(Category category) async {
-    isLoading.value = true;
+  Future<void> updateCategory(String courseId, Category updated) async {
     try {
-      await useCase.updateCategory(category);
-    } finally {
-      isLoading.value = false;
+      await useCase.updateCategory(updated);
+      await loadCategories(courseId);
+    } catch (e) {
+      print("Error al actualizar categoría: $e");
     }
   }
 
-  Future<void> removeCategory(String categoryId, String courseId) async {
-    isLoading.value = true;
+  Future<void> removeCategory(String courseId, String categoryId) async {
     try {
       await useCase.removeCategory(categoryId);
-      await loadCategoriesWithGroups(courseId);
-    } finally {
-      isLoading.value = false;
+      await loadCategories(courseId);
+    } catch (e) {
+      print("Error al eliminar categoría: $e");
     }
   }
 }
+
+
+
+
+
+
