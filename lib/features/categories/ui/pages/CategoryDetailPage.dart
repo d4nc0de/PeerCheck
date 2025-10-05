@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controller/category_controller.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
 import 'package:f_clean_template/features/groups/domain/models/group.dart';
+import 'package:f_clean_template/features/activities/ui/pages/activity_list_page.dart';
 
 class CategoryDetailPage extends StatelessWidget {
   final int categoryIndex;
@@ -20,6 +21,19 @@ class CategoryDetailPage extends StatelessWidget {
             "Categoría: ${controller.categories[categoryIndex].name}",
           ),
         ),
+        actions: [
+    IconButton(
+      icon: const Icon(Icons.assignment),
+      tooltip: 'Ver actividades',
+      onPressed: () {
+        final category = controller.categories[categoryIndex];
+        Get.to(() => ActivityListPage(
+              categoryId: category.id,
+              categoryName: category.name,
+            ));
+      },
+    ),
+  ],
       ),
       body: Obx(() {
         final Category category = controller.categories[categoryIndex];

@@ -126,11 +126,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'PeerCheck - Evaluación entre Pares',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      home: const Central(),
-    );
+  title: 'PeerCheck - Evaluación entre Pares',
+  debugShowCheckedModeBanner: false,
+  theme: AppTheme.light,
+  darkTheme: AppTheme.dark,
+  home: const Central(),
+  getPages: [
+    GetPage(
+      name: '/activities',
+      page: () => const Placeholder(), // se reemplaza al navegar con argumentos
+    ),
+  ],
+);
   }
 }
