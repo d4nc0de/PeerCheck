@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../domain/entities/evaluation.dart';
+import '../../domain/models/evaluation.dart';
 import '../controllers/evaluation_controller.dart';
 
 class EvaluationPage extends StatefulWidget {

@@ -1,4 +1,4 @@
-import '../entities/evaluation.dart';
+import '../models/evaluation.dart';
 import '../repositories/evaluation_repository.dart';
 
 class GetStudentEvaluations {

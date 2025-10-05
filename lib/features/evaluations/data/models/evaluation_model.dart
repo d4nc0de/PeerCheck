@@ -1,4 +1,4 @@
-import '../../domain/entities/evaluation.dart';
+import '../../domain/models/evaluation.dart';
 
 class EvaluationModel extends Evaluation {
   EvaluationModel({

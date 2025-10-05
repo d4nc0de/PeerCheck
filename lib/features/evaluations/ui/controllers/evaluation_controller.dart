@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../../domain/entities/evaluation.dart';
+import '../../domain/models/evaluation.dart';
 import '../../domain/usecases/create_evaluation_model.dart';
 import '../../domain/usecases/get_student_evaluations.dart';
 

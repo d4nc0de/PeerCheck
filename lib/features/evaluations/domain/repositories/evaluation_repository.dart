@@ -1,4 +1,4 @@
-import '../entities/evaluation.dart';
+import '../models/evaluation.dart';
 
 abstract class EvaluationRepository {
   Future<void> createEvaluation(Evaluation evaluation);

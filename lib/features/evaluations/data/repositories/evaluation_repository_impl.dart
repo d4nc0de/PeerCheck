@@ -1,4 +1,4 @@
-import '../../domain/entities/evaluation.dart';
+import '../../domain/models/evaluation.dart';
 import '../../domain/repositories/evaluation_repository.dart';
 import '../datasources/evaluation_remote_datasource.dart';
 import '../models/evaluation_model.dart';
