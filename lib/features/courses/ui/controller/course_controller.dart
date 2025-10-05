@@ -330,6 +330,15 @@ class CourseController extends GetxController {
     return _membersByGroup[groupId] ?? const [];
   }
 
+    // 🔹 Curso actualmente seleccionado
+  final Rx<Course?> _selectedCourse = Rx<Course?>(null);
+
+  String? get currentCourseId => _selectedCourse.value?.id;
+
+  void setCurrentCourse(Course course) {
+    _selectedCourse.value = course;
+  }
+
 }
 
 

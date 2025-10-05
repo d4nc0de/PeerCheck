@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:f_clean_template/features/groups/data/datasources/local/i_group_source.dart';
 import 'package:f_clean_template/features/groups/domain/models/group.dart' as domain;
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/repositories/i_group_repository.dart';
 
@@ -85,4 +86,40 @@ class LocalGroupRepository implements IGroupRepository {
     final jsonString = json.encode(groups.map((g) => g.toJson()).toList());
     await prefs.setString(_storageKey, jsonString);
   }
+
+  // ✅ Agregado: creación manual de grupos (modo profesor)
+  Future<void> addGroupManual({
+    required String categoryId,
+    required String name,
+    required List<String> memberEmails,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final groups = await getGroups();
+
+    // Convertir emails a AuthenticationUser
+    final members = memberEmails
+        .map(
+          (email) => AuthenticationUser(
+            id: email,
+            email: email,
+            name: email.split('@')[0],
+            password: '',
+          ),
+        )
+        .toList();
+
+    final newGroup = domain.Group(
+      id: 'group_${DateTime.now().millisecondsSinceEpoch}',
+      number: groups.length + 1,
+      categoryId: categoryId,
+      name: name,
+      members: members,
+    );
+
+    groups.add(newGroup);
+
+    final jsonString = json.encode(groups.map((g) => g.toJson()).toList());
+    await prefs.setString(_storageKey, jsonString);
+  }
 }
+

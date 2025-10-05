@@ -4,6 +4,10 @@ import 'package:f_clean_template/core/app_theme.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
 import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 import 'package:f_clean_template/features/activities/ui/controller/activity_controller.dart';
+import 'package:f_clean_template/features/auth/ui/controller/authentication_controller.dart';
+import 'package:f_clean_template/features/groups/ui/pages/group_admin_list_page.dart';
+
+
 
 // Páginas de navegación (puedes reemplazarlas por las reales)
 import 'package:f_clean_template/features/activities/ui/pages/activity_list_page.dart';
@@ -85,19 +89,19 @@ class CategoryOverviewPage extends StatelessWidget {
 
             // Botones de navegación
             _buildActionTile(
-              icon: Icons.group,
-              title: "Grupos",
-              description: "Crea y administra los grupos de esta categoría.",
-              color: accent,
-              onTap: () {
-                groupController.loadGroupsByCategory(category.id);
-                Get.to(() => GroupListPage(
-  categoryId: category.id,
-  courseId: courseId,
-  courseName: category.name, // o widget.courseName si esa variable existiera
-));
-              },
-            ),
+  icon: Icons.group,
+  title: "Grupos",
+  description: "Crea y administra los grupos de esta categoría.",
+  color: accent,
+  onTap: () {
+    Get.to(() => GroupAdminListPage(
+      categoryId: category.id,
+      categoryName: category.name,
+      groupSize: category.groupSize, // si existe en tu modelo
+    ));
+  },
+),
+
             const SizedBox(height: 16),
             _buildActionTile(
               icon: Icons.assignment,
