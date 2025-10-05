@@ -270,6 +270,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                               onTap: () {
                                 Get.to(() => CategoryOverviewPage(
                                       category: category,
+                                      courseName: widget.courseName,
                                       courseId: widget.courseId,
                                     ));
                               },
@@ -281,7 +282,14 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                                   isSelected: isSelected,
                                   accent: accent,
                                   cardBg: cardBg,
-                                  onTap: () => _selectCategory(category),
+                                  onTap: () {
+  Get.to(() => CategoryOverviewPage(
+        courseId: widget.courseId,
+        courseName: widget.courseName,
+        category: category,
+      ));
+},
+
                                   onEdit: () async {
                                     await Get.to(() => CategoryEditPage(
                                         category: category, courseId: widget.courseId));

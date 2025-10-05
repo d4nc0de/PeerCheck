@@ -10,13 +10,15 @@ import 'package:f_clean_template/features/activities/ui/pages/activity_list_page
 import 'package:f_clean_template/features/groups/ui/pages/group_list_page.dart';
 
 class CategoryOverviewPage extends StatelessWidget {
-  final Category category;
   final String courseId;
+  final String courseName;
+  final Category category;
 
   const CategoryOverviewPage({
     super.key,
-    required this.category,
     required this.courseId,
+    required this.courseName,
+    required this.category,
   });
 
   @override
