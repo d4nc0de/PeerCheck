@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/authentication_controller.dart';
 import 'edit_profile_page.dart';
+import 'package:f_clean_template/features/courses/ui/pages/home_page.dart ';
 
 class ProfilePage extends StatelessWidget {
   final AuthenticationController controller = Get.find();
@@ -10,10 +11,8 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = controller.currentUser.value;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F4), // Fondo neutro
+      backgroundColor: const Color(0xFFF4F4F4),
       appBar: AppBar(
         title: const Text(
           "Perfil",
@@ -23,79 +22,103 @@ class ProfilePage extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: user == null
-          ? const Center(child: Text("No hay usuario autenticado"))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // Imagen de perfil circular
-                  const CircleAvatar(
-                    radius: 55,
-                    backgroundColor: Colors.grey,
-                    backgroundImage:
-                        AssetImage('assets/images/default_profile.png'),
-                  ),
-                  const SizedBox(height: 20),
+      body: Obx(() {
+        final user = controller.currentUser.value;
+        if (user == null) {
+          return const Center(child: Text("No hay usuario autenticado"));
+        }
 
-                  // Nombre
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-                  Text(
-                    user.email,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-                  const Divider(thickness: 1),
-
-                  // Información adicional del perfil
-                  _ProfileInfoTile(
-                    icon: Icons.person_outline,
-                    title: "Nombre completo",
-                    subtitle: user.name,
-                  ),
-                  _ProfileInfoTile(
-                    icon: Icons.email_outlined,
-                    title: "Correo electrónico",
-                    subtitle: user.email,
-                  ),
-                  _ProfileInfoTile(
-                    icon: Icons.badge_outlined,
-                    title: "ID de usuario",
-                    subtitle: user.id,
-                  ),
-
-                  const SizedBox(height: 30),
-                  const Divider(thickness: 1),
-
-                  // Opciones adicionales
-                  const SizedBox(height: 10),
-                  _ProfileOption(
-                    icon: Icons.edit_outlined,
-                    title: "Editar perfil",
-                    onTap: () {
-                      Get.to(() => const EditProfilePage());
-                    },
-                  ),                
-                ],
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // Imagen del perfil
+              const CircleAvatar(
+                radius: 55,
+                backgroundColor: Colors.grey,
+                backgroundImage:
+                    AssetImage('assets/images/default_profile.png'),
               ),
-            ),
+              const SizedBox(height: 20),
+
+              // Nombre actualizado
+              Text(
+                user.name,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+              Text(
+                user.email,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 30),
+              const Divider(thickness: 1),
+
+              // Información adicional del perfil
+              _ProfileInfoTile(
+                icon: Icons.person_outline,
+                title: "Nombre completo",
+                subtitle: user.name,
+              ),
+              _ProfileInfoTile(
+                icon: Icons.email_outlined,
+                title: "Correo electrónico",
+                subtitle: user.email,
+              ),
+              _ProfileInfoTile(
+                icon: Icons.badge_outlined,
+                title: "ID de usuario",
+                subtitle: user.id,
+              ),
+
+              const SizedBox(height: 30),
+              const Divider(thickness: 1),
+
+              // Botón para editar perfil
+              _ProfileOption(
+                icon: Icons.edit_outlined,
+                title: "Editar perfil",
+                onTap: () {
+                  Get.to(() => const EditProfilePage());
+                },
+              ),
+
+              const SizedBox(height: 10),
+
+              // 🔹 Botón para regresar al Home
+              ElevatedButton.icon(
+                onPressed: () {
+                   Get.offAll(() => const HomePage()); // Vuelve al Home
+                },
+                icon: const Icon(Icons.home),
+                label: const Text("Volver al inicio"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black87,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
 
-// 🔹 Widget para mostrar información del usuario
+// 🔹 Info del perfil
 class _ProfileInfoTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -117,7 +140,7 @@ class _ProfileInfoTile extends StatelessWidget {
   }
 }
 
-// 🔹 Widget para opciones del perfil
+// 🔹 Opción de acción
 class _ProfileOption extends StatelessWidget {
   final IconData icon;
   final String title;
