@@ -100,10 +100,7 @@ Get.put<GroupController>(GroupController(Get.find<GroupUseCase>()));
 Get.put<LocalCategorySource>(LocalCategorySource());
 Get.put<ICategorySource>(Get.find<LocalCategorySource>());
 Get.put<LocalCategoryRepository>(LocalCategoryRepository(Get.find<ICategorySource>()));
-Get.put<CategoryUseCase>(CategoryUseCase(
-  categoryRepository: Get.find<LocalCategoryRepository>(), // 👈 ahora sí
-  groupUseCase: Get.find<GroupUseCase>(),
-));
+Get.put<CategoryUseCase>(CategoryUseCase(Get.find<LocalCategoryRepository>()));
 Get.put<CategoryController>(CategoryController(Get.find<CategoryUseCase>()));
 }
 

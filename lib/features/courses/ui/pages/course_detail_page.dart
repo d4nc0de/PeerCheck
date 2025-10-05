@@ -1,6 +1,7 @@
 import 'package:f_clean_template/features/categories/ui/controller/category_controller.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
-import 'package:f_clean_template/features/categories/domain/models/activity.dart';
+import 'package:f_clean_template/features/activities/domain/models/activity.dart';
+import 'package:f_clean_template/features/activities/ui/controller/activity_controller.dart';
 import 'package:f_clean_template/features/courses/ui/controller/course_controller.dart';
 import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 import 'package:f_clean_template/features/groups/domain/models/group.dart';
@@ -33,6 +34,8 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
   final CategoryController categoryController = Get.find();
   final GroupController groupController = Get.find();
   final AuthenticationController authController = Get.find();
+  final ActivityController activityController = Get.find();
+
   Category? _selectedCategory;
   final ScrollController _scrollController = ScrollController();
 
@@ -44,13 +47,14 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
   }
 
   void _loadAndSelectCategories() {
-    categoryController.loadCategoriesWithGroups(widget.courseId);
-    
+    categoryController.loadCategories(widget.courseId);
+
     ever<List<Category>>(categoryController.categories, (cats) {
       if (cats.isNotEmpty && _selectedCategory == null) {
         setState(() => _selectedCategory = cats.first);
-        // Cargar grupos de la primera categoría
+        // Cargar grupos y actividades de la primera categoría
         groupController.loadGroupsByCategory(cats.first.id);
+        activityController.loadActivities(cats.first.id);
       }
     });
   }
@@ -77,11 +81,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.group_off_outlined,
-            size: 48,
-            color: Colors.orange[600],
-          ),
+          Icon(Icons.group_off_outlined, size: 48, color: Colors.orange[600]),
           const SizedBox(height: 16),
           Text(
             'No perteneces a ningún grupo',
@@ -126,10 +126,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           ),
         ],
@@ -212,9 +209,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -242,9 +237,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -293,11 +286,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                       color: accent.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      Icons.assignment_outlined,
-                      size: 24,
-                      color: accent,
-                    ),
+                    child: Icon(Icons.assignment_outlined, size: 24, color: accent),
                   ),
                   const Spacer(),
                   Container(
@@ -331,6 +320,14 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
+              Text(
+                'Fecha límite: ${activity.dueDate.day}/${activity.dueDate.month}/${activity.dueDate.year}',
+                style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
               const Spacer(),
               const SizedBox(height: 12),
               SizedBox(
@@ -389,348 +386,142 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // Collapsing Header
-            SliverAppBar(
-              expandedHeight: 160.0,
-              collapsedHeight: 80.0,
-              pinned: true,
-              backgroundColor: accent,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Get.back(),
-              ),
-              flexibleSpace: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final double expandedHeight = 160.0;
-                  final double collapsedHeight = 80.0;
-                  final double currentHeight = constraints.maxHeight;
-                  final double collapsePercentage =
-                      ((expandedHeight - currentHeight) / (expandedHeight - collapsedHeight))
-                          .clamp(0.0, 1.0);
-
-                  return FlexibleSpaceBar(
-                    titlePadding: EdgeInsets.only(
-                      left: 60.0,
-                      bottom: 16.0 + (8.0 * (1 - collapsePercentage)),
-                      right: 16.0,
-                    ),
-                    title: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: collapsePercentage > 0.5 ? 1.0 : 0.0,
-                      child: Text(
-                        widget.courseName,
-                        style: const TextStyle(
-                          fontFamily: "Poppins",
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    background: Container(
-                      color: accent,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 40),
-                          AnimatedScale(
-                            duration: const Duration(milliseconds: 200),
-                            scale: 1.0 - (collapsePercentage * 0.3),
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 200),
-                              opacity: 1.0 - collapsePercentage,
-                              child: Column(
-                                children: [
-                                  const Icon(
-                                    Icons.school_rounded,
-                                    size: 40,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    widget.courseName,
-                                    style: const TextStyle(
-                                      fontFamily: "Poppins",
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Profesor: ${widget.teacherEmail}',
-                                    style: const TextStyle(
-                                      fontFamily: "Poppins",
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white70,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            // Content
+            // AppBar idéntico
+            _buildAppBar(accent),
+            // Contenido principal
             SliverToBoxAdapter(
-              child: Container(
-                color: surface,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.05,
-                    vertical: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Category Filter
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Seleccionar Categoría',
-                            style: TextStyle(
-                              fontFamily: "Poppins",
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Category Dropdown
-                      Obx(() {
-                        final cats = categoryController.categories;
-                        if (cats.isEmpty) {
-                          return Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: cardBg,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                            ),
-                            child: Text(
-                              'No hay categorías disponibles',
-                              style: TextStyle(
-                                fontFamily: "Poppins",
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          );
-                        }
-
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: accent.withOpacity(0.3)),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<Category>(
-                              isExpanded: true,
-                              value: cats.contains(_selectedCategory) ? _selectedCategory : null,
-                              hint: Text(
-                                'Selecciona una categoría',
-                                style: TextStyle(
-                                  fontFamily: "Poppins",
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              icon: Icon(Icons.keyboard_arrow_down, color: accent),
-                              items: cats
-                                  .map((c) => DropdownMenuItem<Category>(
-                                        value: c,
-                                        child: Text(
-                                          c.name,
-                                          style: const TextStyle(
-                                            fontFamily: "Poppins",
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ))
-                                  .toList(),
-                              onChanged: (c) {
-                                setState(() => _selectedCategory = c);
-                                if (c != null) {
-                                  groupController.loadGroupsByCategory(c.id);
-                                }
-                              },
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 24),
-
-                      // User Group Status Section
-                      if (_selectedCategory != null) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Estado del Grupo',
-                              style: TextStyle(
-                                fontFamily: "Poppins",
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Group Status Card
-                        Obx(() {
-                          if (groupController.isLoading) {
-                            return Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: cardBg,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-
-                          final userEmail = _getCurrentUserEmail();
-                          final userGroup = groupController.getStudentGroup(userEmail);
-
-                          if (userGroup == null) {
-                            return _buildNoGroupCard(accent, cardBg);
-                          } else {
-                            return _buildUserGroupCard(userGroup, accent, cardBg);
-                          }
-                        }),
-                        const SizedBox(height: 24),
-
-                        // Activities Section (solo si tiene grupo)
-                        Obx(() {
-                          final userEmail = _getCurrentUserEmail();
-                          final userGroup = groupController.getStudentGroup(userEmail);
-                          
-                          if (userGroup == null) {
-                            return const SizedBox.shrink();
-                          }
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Actividades - ${_selectedCategory!.name}',
-                                      style: const TextStyle(
-                                        fontFamily: "Poppins",
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Activities Grid
-                              Builder(
-                                builder: (context) {
-                                  final activities = _selectedCategory?.activities ?? [];
-                                  if (activities.isEmpty) {
-                                    return Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(40),
-                                      decoration: BoxDecoration(
-                                        color: cardBg,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(Icons.assignment_outlined,
-                                              size: 48, color: Colors.grey[400]),
-                                          const SizedBox(height: 12),
-                                          Text(
-                                            'No hay actividades disponibles en esta categoría',
-                                            style: TextStyle(
-                                              fontFamily: "Poppins",
-                                              fontSize: 16,
-                                              color: Colors.grey[600],
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Las actividades aparecerán aquí cuando estén disponibles',
-                                            style: TextStyle(
-                                              fontFamily: "Poppins",
-                                              fontSize: 12,
-                                              color: Colors.grey[500],
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-
-                                  return GridView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    itemCount: activities.length,
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: screenWidth > 600 ? 3 : 2,
-                                      crossAxisSpacing: 12,
-                                      mainAxisSpacing: 12,
-                                      childAspectRatio: 0.85,
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      return _buildActivityCard(
-                                        activity: activities[index],
-                                        accent: accent,
-                                        cardBg: cardBg,
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        }),
-                      ],
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
+              child: _buildContent(context, screenWidth, accent, cardBg, surface),
             ),
           ],
         ),
       ),
     );
+  }
+
+  // ---- Componentes de UI reusables ----
+
+  Widget _buildAppBar(Color accent) {
+    return SliverAppBar(
+      expandedHeight: 160.0,
+      collapsedHeight: 80.0,
+      pinned: true,
+      backgroundColor: accent,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () => Get.back(),
+      ),
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(
+          widget.courseName,
+          style: const TextStyle(
+            fontFamily: "Poppins",
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        background: Container(color: accent),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, double screenWidth, Color accent, Color cardBg, Color surface) {
+    return Container(
+      color: surface,
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCategoryDropdown(accent, cardBg),
+          const SizedBox(height: 24),
+          _buildGroupSection(accent, cardBg, surface, screenWidth),
+          const SizedBox(height: 24),
+          _buildActivitiesSection(accent, cardBg, screenWidth),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryDropdown(Color accent, Color cardBg) {
+    return Obx(() {
+      final cats = categoryController.categories;
+      if (cats.isEmpty) {
+        return Text('No hay categorías disponibles',
+            style: TextStyle(fontFamily: "Poppins", color: Colors.grey[600]));
+      }
+      return DropdownButtonHideUnderline(
+        child: DropdownButton<Category>(
+          isExpanded: true,
+          value: _selectedCategory,
+          hint: const Text('Selecciona una categoría'),
+          items: cats
+              .map((c) => DropdownMenuItem<Category>(
+                    value: c,
+                    child: Text(c.name),
+                  ))
+              .toList(),
+          onChanged: (c) {
+            setState(() => _selectedCategory = c);
+            if (c != null) {
+              groupController.loadGroupsByCategory(c.id);
+              activityController.loadActivities(c.id);
+            }
+          },
+        ),
+      );
+    });
+  }
+
+  Widget _buildGroupSection(Color accent, Color cardBg, Color surface, double screenWidth) {
+    final userEmail = _getCurrentUserEmail();
+    return Obx(() {
+      if (groupController.isLoading) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      final userGroup = groupController.getStudentGroup(userEmail);
+      return userGroup == null
+          ? _buildNoGroupCard(accent, cardBg)
+          : _buildUserGroupCard(userGroup, accent, cardBg);
+    });
+  }
+
+  Widget _buildActivitiesSection(Color accent, Color cardBg, double screenWidth) {
+    if (_selectedCategory == null) return const SizedBox.shrink();
+
+    final userEmail = _getCurrentUserEmail();
+    final userGroup = groupController.getStudentGroup(userEmail);
+    if (userGroup == null) return const SizedBox.shrink();
+
+    return Obx(() {
+      final activities = activityController.activities;
+      if (activities.isEmpty) {
+        return Text(
+          'No hay actividades disponibles en esta categoría',
+          style: TextStyle(fontFamily: "Poppins", color: Colors.grey[600]),
+        );
+      }
+
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: activities.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: screenWidth > 600 ? 3 : 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.85,
+        ),
+        itemBuilder: (context, index) {
+          return _buildActivityCard(
+            activity: activities[index],
+            accent: accent,
+            cardBg: cardBg,
+          );
+        },
+      );
+    });
   }
 }
