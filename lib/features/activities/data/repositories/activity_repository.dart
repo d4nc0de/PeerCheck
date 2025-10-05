@@ -1,7 +1,7 @@
 import 'package:f_clean_template/features/activities/domain/models/activity.dart';
 import 'package:f_clean_template/features/activities/domain/repositories/i_activity_repository.dart';
 import 'package:f_clean_template/features/activities/data/datasources/i_activity_source.dart';
-import 'package:f_clean_template/features/activities/data/datasources/local_activity_source.dart';
+import 'package:f_clean_template/features/activities/data/datasources/local/local_activity_source.dart';
 
 /// Repositorio concreto que utiliza la fuente local
 class LocalActivityRepository implements IActivityRepository {

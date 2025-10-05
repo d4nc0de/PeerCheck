@@ -38,6 +38,14 @@ import 'package:f_clean_template/features/groups/domain/repositories/i_group_rep
 import 'package:f_clean_template/features/groups/domain/use_case/group_usecase.dart';
 import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 
+// Activities
+import 'package:f_clean_template/features/activities/data/datasources/local/local_activity_source.dart';
+import 'package:f_clean_template/features/activities/data/datasources/i_activity_source.dart';
+import 'package:f_clean_template/features/activities/data/repositories/activity_repository.dart';
+import 'package:f_clean_template/features/activities/domain/repositories/i_activity_repository.dart';
+import 'package:f_clean_template/features/activities/domain/use_case/activity_usecase.dart';
+import 'package:f_clean_template/features/activities/ui/controller/activity_controller.dart';
+
 
 
 const String kApiBaseUrl = String.fromEnvironment(
@@ -102,6 +110,13 @@ Get.put<ICategorySource>(Get.find<LocalCategorySource>());
 Get.put<LocalCategoryRepository>(LocalCategoryRepository(Get.find<ICategorySource>()));
 Get.put<CategoryUseCase>(CategoryUseCase(Get.find<LocalCategoryRepository>()));
 Get.put<CategoryController>(CategoryController(Get.find<CategoryUseCase>()));
+
+// ===== ACTIVITIES =====
+Get.put<LocalActivitySource>(LocalActivitySource());
+Get.put<IActivitySource>(Get.find<LocalActivitySource>());
+Get.put<IActivityRepository>(LocalActivityRepository(Get.find<IActivitySource>()));
+Get.put(ActivityUseCase(Get.find<IActivityRepository>()));
+Get.put(ActivityController(Get.find<ActivityUseCase>()));
 }
 
 
