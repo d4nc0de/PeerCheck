@@ -131,12 +131,6 @@ class MyApp extends StatelessWidget {
   theme: AppTheme.light,
   darkTheme: AppTheme.dark,
   home: const Central(),
-  getPages: [
-    GetPage(
-      name: '/activities',
-      page: () => const Placeholder(), // se reemplaza al navegar con argumentos
-    ),
-  ],
-);
+    );
   }
 }

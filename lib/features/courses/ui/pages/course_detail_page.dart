@@ -10,8 +10,8 @@ import 'package:f_clean_template/features/auth/ui/controller/authentication_cont
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_theme.dart';
-import 'my_group_page.dart';
-import 'group_list_page.dart';
+import '../../../groups/ui/pages/my_group_page.dart';
+import '../../../groups/ui/pages/group_list_page.dart';
 
 class CourseDetailPage extends StatefulWidget {
   final String courseId;
