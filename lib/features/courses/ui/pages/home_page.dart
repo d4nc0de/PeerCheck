@@ -1,5 +1,6 @@
 import 'package:f_clean_template/core/app_theme.dart';
 import 'package:f_clean_template/features/courses/ui/pages/course_detail_page.dart';
+import 'package:f_clean_template/features/auth/ui/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
@@ -26,12 +27,31 @@ class _HomePageState extends State<HomePage> {
   final AuthenticationController authController = Get.find();
 
   UserRole _role = UserRole.profesor;
+  int _selectedIndex = 0; // 🔹 índice actual de la barra inferior
 
   Future<void> _logout() async {
     try {
       await authController.logOut();
     } catch (e) {
       logInfo(e);
+    }
+  }
+
+  // 🔹 Controla los clics del BottomNavigationBar
+  void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
+
+    switch (index) {
+      case 0:
+        // Inicio (no hace nada)
+        break;
+      case 1:
+        // Aquí podrías abrir "Resultados" en el futuro
+        break;
+      case 2:
+        // Ir a la página de perfil
+        Get.to(() => ProfilePage());
+        break;
     }
   }
 
@@ -46,12 +66,10 @@ class _HomePageState extends State<HomePage> {
     final palette = Theme.of(context).extension<RolePalette>()!;
     final bool isProfesor = _role == UserRole.profesor;
 
-    final Color accent = isProfesor
-        ? palette.profesorAccent
-        : palette.estudianteAccent;
-    final Color cardBg = isProfesor
-        ? palette.profesorCard
-        : palette.estudianteCard;
+    final Color accent =
+        isProfesor ? palette.profesorAccent : palette.estudianteAccent;
+    final Color cardBg =
+        isProfesor ? palette.profesorCard : palette.estudianteCard;
     final Color surface = palette.surfaceSoft;
 
     return Scaffold(
@@ -83,19 +101,17 @@ class _HomePageState extends State<HomePage> {
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(width: 12),
-                  Obx(
-                    () {
-                      final currentUser = authController.currentUser.value;
-                      final userName = currentUser?.name ?? "Usuario";
-                      return Text(
-                        userName,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w200,
-                          fontSize: 24,
-                        ),
-                      );
-                    },
-                  ),
+                  Obx(() {
+                    final currentUser = authController.currentUser.value;
+                    final userName = currentUser?.name ?? "Usuario";
+                    return Text(
+                      userName,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w200, fontSize: 24),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -103,9 +119,10 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.only(top: 6, bottom: 12),
               child: Text(
                 "Cursos",
-                style: Theme.of(
-                  context,
-                ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(context)
+                    .textTheme
+                    .displaySmall
+                    ?.copyWith(fontWeight: FontWeight.w900),
               ),
             ),
             Padding(
@@ -126,80 +143,73 @@ class _HomePageState extends State<HomePage> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: surface,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(18),
-                  ),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(18)),
                 ),
-                child: Obx(
-                  () => courseController.isLoading.value
-                      ? const Center(child: CircularProgressIndicator())
-                      : RefreshIndicator(
-                          onRefresh: () async =>
-                              courseController.getCoursesByRole(isProfesor),
-                          child: ListView(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                            children: [
-                              for (final course
-                                  in courseController.getCurrentCourses(
-                                    isProfesor,
-                                  )) ...[
-                                _ClassCard(
-                                  course: course,
-                                  isProfesor: isProfesor,
-                                  accent: accent,
-                                  bg: cardBg,
-                                  onTap: () {
-                                    if (isProfesor) {
-                                      Get.to(
-                                        () => CourseEnrollmentPage(
+                child: Obx(() => courseController.isLoading.value
+                    ? const Center(child: CircularProgressIndicator())
+                    : RefreshIndicator(
+                        onRefresh: () async =>
+                            courseController.getCoursesByRole(isProfesor),
+                        child: ListView(
+                          padding:
+                              const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                          children: [
+                            for (final course
+                                in courseController.getCurrentCourses(
+                                    isProfesor)) ...[
+                              _ClassCard(
+                                course: course,
+                                isProfesor: isProfesor,
+                                accent: accent,
+                                bg: cardBg,
+                                onTap: () {
+                                  if (isProfesor) {
+                                    Get.to(() => CourseEnrollmentPage(
                                           courseId: course.id,
                                           courseName: course.name,
-                                          courseCode: course.nrc.toString(),
-                                        ),
-                                      );
-                                    } else {
-                                      Get.to(
-                                        () => CourseDetailPage(
+                                          courseCode:
+                                              course.nrc.toString(),
+                                        ));
+                                  } else {
+                                    Get.to(() => CourseDetailPage(
                                           courseId: course.id,
                                           courseName: course.name,
                                           teacherEmail: course.teacher,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  onDismissed: isProfesor
-                                      ? () => courseController.deleteCourse(
-                                          course,
-                                        )
-                                      : () => courseController.unenrollUser(
-                                          course.id,
-                                        ),
-                                ),
-                                const SizedBox(height: 18),
-                              ],
-                              _AddBigCard(
-                                accentBg: cardBg,
-                                onAdd: () {
-                                  if (isProfesor) {
-                                    Get.to(() => const AddCoursePage());
-                                  } else {
-                                    Get.to(() => const CourseEnrollPage());
+                                        ));
                                   }
                                 },
-                                isProfesor: isProfesor,
+                                onDismissed: isProfesor
+                                    ? () => courseController
+                                        .deleteCourse(course)
+                                    : () => courseController
+                                        .unenrollUser(course.id),
                               ),
+                              const SizedBox(height: 18),
                             ],
-                          ),
+                            _AddBigCard(
+                              accentBg: cardBg,
+                              onAdd: () {
+                                if (isProfesor) {
+                                  Get.to(() => const AddCoursePage());
+                                } else {
+                                  Get.to(() => const CourseEnrollPage());
+                                }
+                              },
+                              isProfesor: isProfesor,
+                            ),
+                          ],
                         ),
-                ),
+                      )),
               ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
+        currentIndex: _selectedIndex,
         selectedItemColor: accent,
+        onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_filled),
