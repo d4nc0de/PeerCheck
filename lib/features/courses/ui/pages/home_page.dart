@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 2:
         // Ir a la página de perfil
-        Get.to(() => ProfilePage());
+        Get.off(() => ProfilePage());
         break;
     }
   }
