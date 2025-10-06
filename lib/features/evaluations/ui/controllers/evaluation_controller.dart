@@ -1,36 +1,20 @@
 import 'package:get/get.dart';
 import '../../domain/models/evaluation.dart';
-import '../../domain/usecases/create_evaluation_model.dart';
-import '../../domain/usecases/get_student_evaluations.dart';
+import '../../domain/use_case/evaluation_usecase.dart';
 
 class EvaluationController extends GetxController {
-  final CreateEvaluation createEvaluation;
-  final GetStudentEvaluations getStudentEvaluations;
+  final EvaluationUseCase useCase;
 
-  EvaluationController({
-    required this.createEvaluation,
-    required this.getStudentEvaluations,
-  });
+  EvaluationController(this.useCase);
 
   var evaluations = <Evaluation>[].obs;
-  var loading = false.obs;
 
-  Future<void> submitEvaluation(Evaluation evaluation) async {
-    loading.value = true;
-    try {
-      await createEvaluation(evaluation);
-    } finally {
-      loading.value = false;
-    }
+  Future<void> loadEvaluationsByActivity(String activityId) async {
+    evaluations.value = await useCase.getEvaluationsByActivity(activityId);
   }
 
-  Future<void> loadStudentEvaluations(String studentId) async {
-    loading.value = true;
-    try {
-      final res = await getStudentEvaluations(studentId);
-      evaluations.assignAll(res);
-    } finally {
-      loading.value = false;
-    }
+  Future<void> addEvaluation(Evaluation evaluation) async {
+    await useCase.addEvaluation(evaluation);
+    await loadEvaluationsByActivity(evaluation.activityId);
   }
 }

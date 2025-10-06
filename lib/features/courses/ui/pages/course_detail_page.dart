@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_theme.dart';
 import '../../../groups/ui/pages/my_group_page.dart';
 import '../../../groups/ui/pages/group_list_page.dart';
+import 'package:f_clean_template/features/evaluations/ui/pages/evaluate_peers_page.dart';
 
 class CourseDetailPage extends StatefulWidget {
   final String courseId;
@@ -334,13 +335,10 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    Get.snackbar(
-                      'Próximamente',
-                      'La evaluación de compañeros estará disponible pronto.',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: accent,
-                      colorText: Colors.white,
-                    );
+                    // NUEVO: Navegar a la página de evaluación
+                    Get.to(() => EvaluatePeersPage(                   
+                          activityId: activity.id,                                                 
+                        ));
                   },
                   icon: const Icon(Icons.rate_review_outlined, size: 16),
                   label: const Text(
@@ -386,9 +384,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // AppBar idéntico
             _buildAppBar(accent),
-            // Contenido principal
             SliverToBoxAdapter(
               child: _buildContent(context, screenWidth, accent, cardBg, surface),
             ),

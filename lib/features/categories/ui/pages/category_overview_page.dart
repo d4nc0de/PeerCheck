@@ -5,13 +5,13 @@ import 'package:f_clean_template/features/categories/domain/models/category.dart
 import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 import 'package:f_clean_template/features/activities/ui/controller/activity_controller.dart';
 import 'package:f_clean_template/features/auth/ui/controller/authentication_controller.dart';
+
+// Páginas existentes
 import 'package:f_clean_template/features/groups/ui/pages/group_admin_list_page.dart';
-
-
-
-// Páginas de navegación (puedes reemplazarlas por las reales)
 import 'package:f_clean_template/features/activities/ui/pages/activity_list_page.dart';
-import 'package:f_clean_template/features/groups/ui/pages/group_list_page.dart';
+
+// 👉 Nueva importación
+import 'package:f_clean_template/features/evaluations/ui/pages/evaluation_page.dart';
 
 class CategoryOverviewPage extends StatelessWidget {
   final String courseId;
@@ -34,6 +34,7 @@ class CategoryOverviewPage extends StatelessWidget {
 
     final groupController = Get.find<GroupController>();
     final activityController = Get.find<ActivityController>();
+    final authController = Get.find<AuthenticationController>();
 
     return Scaffold(
       backgroundColor: surface,
@@ -52,7 +53,7 @@ class CategoryOverviewPage extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            // Descripción general
+            // 🔹 Descripción general de la categoría
             Card(
               color: cardBg,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -85,25 +86,27 @@ class CategoryOverviewPage extends StatelessWidget {
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
 
-            // Botones de navegación
+            // 🔹 Botones de navegación
             _buildActionTile(
-  icon: Icons.group,
-  title: "Grupos",
-  description: "Crea y administra los grupos de esta categoría.",
-  color: accent,
-  onTap: () {
-    Get.to(() => GroupAdminListPage(
-      categoryId: category.id,
-      categoryName: category.name,
-      groupSize: category.groupSize,
-      courseId: courseId,
-    ));
-  },
-),
+              icon: Icons.group,
+              title: "Grupos",
+              description: "Crea y administra los grupos de esta categoría.",
+              color: accent,
+              onTap: () {
+                Get.to(() => GroupAdminListPage(
+                      categoryId: category.id,
+                      categoryName: category.name,
+                      groupSize: category.groupSize,
+                      courseId: courseId,
+                    ));
+              },
+            ),
 
             const SizedBox(height: 16),
+
             _buildActionTile(
               icon: Icons.assignment,
               title: "Actividades",
@@ -112,24 +115,26 @@ class CategoryOverviewPage extends StatelessWidget {
               onTap: () {
                 activityController.loadActivities(category.id);
                 Get.to(() => ActivityListPage(
-                categoryId: category.id,
-                categoryName: category.name,
-              ));
+                      categoryId: category.id,
+                      categoryName: category.name,
+                    ));
               },
             ),
+
             const SizedBox(height: 16),
+
+            // 🟣 Nuevo botón de Evaluaciones funcional
             _buildActionTile(
               icon: Icons.analytics,
               title: "Evaluaciones (Assessments)",
               description: "Gestiona las evaluaciones entre pares de esta categoría.",
               color: Colors.purple,
               onTap: () {
-                Get.snackbar(
-                  "Próximamente",
-                  "La gestión de evaluaciones estará disponible pronto.",
-                  backgroundColor: Colors.purple.withOpacity(0.1),
-                  colorText: Colors.purple,
-                );
+                // 🔹 Cargamos las actividades de la categoría
+                activityController.loadActivities(category.id);
+
+                // 🔹 Navegamos hacia la página de evaluaciones
+                Get.to(() => EvaluationPage(categoryId: category.id));
               },
             ),
           ],
@@ -150,7 +155,7 @@ class CategoryOverviewPage extends StatelessWidget {
     }
   }
 
-  /// Widget de tarjeta de acción
+  /// Widget de tarjeta de acción reutilizable
   Widget _buildActionTile({
     required IconData icon,
     required String title,
