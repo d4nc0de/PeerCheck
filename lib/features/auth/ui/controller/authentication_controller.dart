@@ -73,4 +73,10 @@ class AuthenticationController extends GetxController {
       rememberMe.value = true;
     }
   }
+
+  String get currentUserEmail => currentUser.value?.email ?? '';
+  String get currentUserName => currentUser.value?.name ?? '';
+
 }
+
+

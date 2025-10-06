@@ -10,6 +10,7 @@ import 'package:f_clean_template/features/categories/ui/pages/add_category_page.
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
 import 'package:f_clean_template/features/activities/domain/models/activity.dart';
 import 'package:f_clean_template/features/groups/domain/models/group.dart';
+import 'package:f_clean_template/features/categories/ui/pages/category_overview_page.dart'; // 👈 nueva página
 
 class CourseEnrollmentPage extends StatefulWidget {
   final String courseId;
@@ -265,60 +266,54 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                           itemBuilder: (context, index) {
                             final category = cats[index];
                             final isSelected = _selectedCategory?.id == category.id;
-                            return Container(
-                              width: 200,
-                              margin: const EdgeInsets.only(right: 12),
-                              child: _buildCategoryCard(
-                                category: category,
-                                isSelected: isSelected,
-                                accent: accent,
-                                cardBg: cardBg,
-                                onTap: () => _selectCategory(category),
-                                onEdit: () async {
-                                  await Get.to(() => CategoryEditPage(
-                                      category: category, courseId: widget.courseId));
-                                  _loadAndSelectCategories();
-                                },
+                            return GestureDetector(
+                              onTap: () {
+                                Get.to(() => CategoryOverviewPage(
+                                      category: category,
+                                      courseName: widget.courseName,
+                                      courseId: widget.courseId,
+                                    ));
+                              },
+                              child: Container(
+                                width: 200,
+                                margin: const EdgeInsets.only(right: 12),
+                                child: _buildCategoryCard(
+                                  category: category,
+                                  isSelected: isSelected,
+                                  accent: accent,
+                                  cardBg: cardBg,
+                                  onTap: () {
+  Get.to(() => CategoryOverviewPage(
+        courseId: widget.courseId,
+        courseName: widget.courseName,
+        category: category,
+      ));
+},
+
+                                  onEdit: () async {
+                                    await Get.to(() => CategoryEditPage(
+                                        category: category, courseId: widget.courseId));
+                                    _loadAndSelectCategories();
+                                  },
+                                ),
                               ),
                             );
                           },
                         ),
                       );
                     }),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
 
-                    // Actividades
-                    if (_selectedCategory != null) ...[
-                      const Text('Actividades',
-                          style: TextStyle(
-                              fontFamily: "Poppins",
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 10),
-                      Obx(() {
-                        final acts = activityController.activities;
-                        if (acts.isEmpty) {
-                          return const Text("No hay actividades registradas");
-                        }
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: acts.length,
-                          itemBuilder: (context, index) {
-                            final act = acts[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: _buildActivityCard(
-                                activity: act,
-                                accent: accent,
-                                cardBg: cardBg,
-                                onTap: () => Get.snackbar("Actividad", act.name),
-                              ),
-                            );
-                          },
-                        );
-                      }),
-                    ],
+                    Center(
+                      child: Text(
+                        'Selecciona una categoría para gestionar grupos, actividades y evaluaciones',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontFamily: "Poppins",
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

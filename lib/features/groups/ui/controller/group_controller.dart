@@ -329,4 +329,40 @@ class GroupController extends GetxController {
   void setSelectedCategory(String categoryId) {
     _selectedCategoryId.value = categoryId;
   }
+
+    /// 🔹 Crear un grupo manualmente (modo profesor)
+  Future<void> addGroupManual({
+    required String categoryId,
+    required String name,
+    required List<String> memberEmails,
+  }) async {
+    try {
+      _errorMessage.value = ''; // ✅ limpiar error anterior
+      await _groupUseCase.groupRepository.addGroupManual(
+        categoryId: categoryId,
+        name: name,
+        memberEmails: memberEmails,
+      );
+      await loadGroupsByCategory(categoryId);
+    } catch (e) {
+      _errorMessage.value = 'Error al crear grupo: $e'; // ✅ corregido
+      print('Error en addGroupManual: $e');
+    }
+  }
+
+  /// 🔹 Eliminar un grupo (modo profesor)
+  Future<void> removeGroup({
+    required String groupId,
+    required String categoryId,
+  }) async {
+    try {
+      _errorMessage.value = ''; // ✅ limpiar error anterior
+      await _groupUseCase.removeGroup(groupId);
+      await loadGroupsByCategory(categoryId);
+    } catch (e) {
+      _errorMessage.value = 'Error al eliminar grupo: $e'; // ✅ corregido
+      print('Error en removeGroup: $e');
+    }
+  }
+
 }

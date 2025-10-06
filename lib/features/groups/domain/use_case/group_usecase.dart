@@ -30,6 +30,20 @@ class GroupUseCase {
     return await groupRepository.getGroupById(groupId);
   }
 
+    /// 🔹 Crear un grupo manualmente (nombre + lista de correos)
+  Future<void> addGroupManual({
+    required String categoryId,
+    required String name,
+    required List<String> memberEmails,
+  }) async {
+    await groupRepository.addGroupManual(
+      categoryId: categoryId,
+      name: name,
+      memberEmails: memberEmails,
+    );
+  }
+
+
   Future<void> addGroup({
     required String categoryId,
     required int number,

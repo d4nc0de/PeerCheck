@@ -31,10 +31,8 @@ import 'package:f_clean_template/features/categories/data/repositories/category_
 import 'package:f_clean_template/features/categories/domain/use_case/category_usecase.dart';
 
 // Groups
-import 'package:f_clean_template/features/groups/data/datasources/local/i_group_source.dart';
 import 'package:f_clean_template/features/groups/data/datasources/local/local_group_source.dart';
 import 'package:f_clean_template/features/groups/data/repositories/group_repository.dart';
-import 'package:f_clean_template/features/groups/domain/repositories/i_group_repository.dart';
 import 'package:f_clean_template/features/groups/domain/use_case/group_usecase.dart';
 import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 
@@ -98,11 +96,10 @@ void initDependencies() {
   Get.lazyPut(() => CourseController());
 
 // Groups
-Get.put<LocalGroupSource>(LocalGroupSource());
-Get.put<IGroupSource>(Get.find<LocalGroupSource>());
-Get.put<LocalGroupRepository>(LocalGroupRepository(Get.find<IGroupSource>()));
-Get.put<GroupUseCase>(GroupUseCase(groupRepository: Get.find<LocalGroupRepository>()));
-Get.put<GroupController>(GroupController(Get.find<GroupUseCase>()));
+final localGroupSource = LocalGroupSource();
+final groupRepository = LocalGroupRepository(localGroupSource);
+final groupUseCase = GroupUseCase(groupRepository: groupRepository);
+Get.put(GroupController(groupUseCase));
 
 // Categories
 Get.put<LocalCategorySource>(LocalCategorySource());
@@ -131,12 +128,6 @@ class MyApp extends StatelessWidget {
   theme: AppTheme.light,
   darkTheme: AppTheme.dark,
   home: const Central(),
-  getPages: [
-    GetPage(
-      name: '/activities',
-      page: () => const Placeholder(), // se reemplaza al navegar con argumentos
-    ),
-  ],
-);
+    );
   }
 }

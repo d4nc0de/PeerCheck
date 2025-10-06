@@ -4,12 +4,14 @@ class Group {
   final String id; // id único
   final int number; // número de grupo
   final String categoryId; // referencia a la categoría
+  final String? name; // ✅ nombre opcional para el grupo (usado por profesor)
   final List<AuthenticationUser> members;
 
   Group({
     required this.id,
     required this.number,
     required this.categoryId,
+    this.name, // ✅ agregado
     this.members = const [],
   });
 
@@ -18,6 +20,7 @@ class Group {
       id: json['id'],
       number: json['number'],
       categoryId: json['categoryId'],
+      name: json['name'], // ✅ agregado
       members: (json['members'] as List<dynamic>?)
               ?.map((u) => AuthenticationUser.fromJson(u))
               .toList() ??
@@ -30,6 +33,7 @@ class Group {
       'id': id,
       'number': number,
       'categoryId': categoryId,
+      'name': name, // ✅ agregado
       'members': members.map((u) => u.toJson()).toList(),
     };
   }
@@ -39,12 +43,14 @@ class Group {
     String? id,
     int? number,
     String? categoryId,
+    String? name, // ✅ agregado
     List<AuthenticationUser>? members,
   }) {
     return Group(
       id: id ?? this.id,
       number: number ?? this.number,
       categoryId: categoryId ?? this.categoryId,
+      name: name ?? this.name, // ✅ agregado
       members: members ?? this.members,
     );
   }
