@@ -97,7 +97,8 @@ class CategoryOverviewPage extends StatelessWidget {
     Get.to(() => GroupAdminListPage(
       categoryId: category.id,
       categoryName: category.name,
-      groupSize: category.groupSize, // si existe en tu modelo
+      groupSize: category.groupSize,
+      courseId: courseId,
     ));
   },
 ),

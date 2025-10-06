@@ -9,12 +9,14 @@ class GroupAdminListPage extends StatelessWidget {
   final String categoryId;
   final String categoryName;
   final int groupSize;
+  final String courseId;
 
   const GroupAdminListPage({
     super.key,
     required this.categoryId,
     required this.categoryName,
     required this.groupSize,
+    required this.courseId,
   });
 
   @override
@@ -29,7 +31,10 @@ class GroupAdminListPage extends StatelessWidget {
             icon: const Icon(Icons.add),
             tooltip: "Crear grupo manualmente",
             onPressed: () {
-              Get.to(() => GroupAddPage(categoryId: categoryId));
+              Get.to(() => GroupAddPage(
+  categoryId: categoryId,
+  courseId: courseId,
+));
             },
           ),
           IconButton(
