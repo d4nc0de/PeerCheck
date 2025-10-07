@@ -4,13 +4,14 @@ import 'package:f_clean_template/features/groups/ui/controller/group_controller.
 import 'package:f_clean_template/features/activities/ui/controller/activity_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/services.dart'; // 👈 agregado para copiar al portapapeles
 import 'package:f_clean_template/core/app_theme.dart';
 import '../controller/course_controller.dart';
 import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
 import 'package:f_clean_template/features/activities/domain/models/activity.dart';
 import 'package:f_clean_template/features/groups/domain/models/group.dart';
-import 'package:f_clean_template/features/categories/ui/pages/category_overview_page.dart'; // 👈 nueva página
+import 'package:f_clean_template/features/categories/ui/pages/category_overview_page.dart';
 
 class CourseEnrollmentPage extends StatefulWidget {
   final String courseId;
@@ -64,6 +65,19 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
     setState(() => _selectedCategory = category);
     groupController.loadGroupsByCategory(category.id);
     activityController.loadActivities(category.id);
+  }
+
+  // 👇 NUEVO: función para copiar el ID del curso
+  void _copyCourseId() {
+    Clipboard.setData(ClipboardData(text: widget.courseId));
+    Get.snackbar(
+      'Copiado',
+      'ID del curso copiado al portapapeles',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFFFFD60A),
+      colorText: Colors.black,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   @override
@@ -213,8 +227,9 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
+            // 👇 MODIFICADO: AppBar con visualización del ID del curso
             SliverAppBar(
-              expandedHeight: 180,
+              expandedHeight: 200,
               pinned: true,
               backgroundColor: accent,
               leading: IconButton(
@@ -222,22 +237,76 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                 onPressed: () => Get.back(),
               ),
               title: Text(widget.courseName, style: const TextStyle(color: Colors.white)),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(70),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+                  decoration: const BoxDecoration(color: Colors.transparent),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Código del curso (ID)',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: SelectableText(
+                                widget.courseId,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          IconButton(
+                            onPressed: _copyCourseId,
+                            icon: const Icon(Icons.copy, color: Colors.white),
+                            tooltip: 'Copiar ID',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
+
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Categorías
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Categorías',
-                            style: TextStyle(
-                                fontFamily: "Poppins",
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700)),
+                        const Text(
+                          'Categorías',
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                         ElevatedButton.icon(
                           onPressed: () async {
                             await Get.to(() => AddCategoryPage(courseId: widget.courseId));
@@ -283,13 +352,12 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                                   accent: accent,
                                   cardBg: cardBg,
                                   onTap: () {
-  Get.to(() => CategoryOverviewPage(
-        courseId: widget.courseId,
-        courseName: widget.courseName,
-        category: category,
-      ));
-},
-
+                                    Get.to(() => CategoryOverviewPage(
+                                          courseId: widget.courseId,
+                                          courseName: widget.courseName,
+                                          category: category,
+                                        ));
+                                  },
                                   onEdit: () async {
                                     await Get.to(() => CategoryEditPage(
                                         category: category, courseId: widget.courseId));
@@ -303,7 +371,6 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                       );
                     }),
                     const SizedBox(height: 30),
-
                     Center(
                       child: Text(
                         'Selecciona una categoría para gestionar grupos, actividades y evaluaciones',

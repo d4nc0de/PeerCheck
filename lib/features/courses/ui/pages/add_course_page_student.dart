@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_theme.dart';
-import 'package:f_clean_template/features/courses/data/datasources/local/local_course_source.dart';
 import '../controller/course_controller.dart';
+import 'package:f_clean_template/features/auth/ui/controller/authentication_controller.dart';
 
 class CourseEnrollPage extends StatefulWidget {
   const CourseEnrollPage({super.key});
@@ -19,82 +19,51 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
   @override
   void dispose() {
     _courseCodeFocusNode.dispose();
+    controllerCourseCode.dispose();
     super.dispose();
   }
 
   Future<void> _enrollWithCode() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final currentUserEmail = 'estudiante@ejemplo.com';
-        final nrcCode = int.tryParse(controllerCourseCode.text);
+    if (!_formKey.currentState!.validate()) return;
 
-        if (nrcCode == null) {
-          Get.snackbar(
-            'Error',
-            'Código NRC inválido',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFFFFEAA7),
-            colorText: Colors.black,
-          );
-          return;
-        }
+    final courseController = Get.find<CourseController>();
+    final auth = Get.find<AuthenticationController>();
+    final currentUser = auth.currentUser.value;
 
-        final courseSource = Get.find<LocalCourseSource>();
-        final courseToEnroll = courseSource.findCourseByNrc(nrcCode);
+    if (currentUser == null) {
+      Get.snackbar(
+        "Error",
+        "Debes iniciar sesión para inscribirte",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF001D3D),
+        colorText: Colors.white,
+      );
+      return;
+    }
 
-        if (courseToEnroll != null) {
-          if (courseToEnroll.enrolledUsers.contains(currentUserEmail)) {
-            Get.snackbar(
-              'Ya Inscrito',
-              'Ya estás inscrito en este curso: ${courseToEnroll.name}',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFFFFEAA7),
-              colorText: Colors.black,
-            );
-            return;
-          }
+    final courseId = controllerCourseCode.text.trim(); // 👈 usar como ID
 
-          if (!courseToEnroll.hasAvailableSpots) {
-            Get.snackbar(
-              'Cupo Lleno',
-              'El curso ${courseToEnroll.name} no tiene cupos disponibles',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFFFFEAA7),
-              colorText: Colors.black,
-            );
-            return;
-          }
+    try {
+      await courseController.courseUseCase.enrollUser(courseId, currentUser.email);
+      await courseController.getStudentCourses();
 
-          final courseController = Get.find<CourseController>();
-          courseController.enrollUser(courseToEnroll.id);
-
-          Get.back();
-          Get.snackbar(
-            'Inscripción Exitosa',
-            'Te has inscrito al curso: ${courseToEnroll.name}',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFFFFEAA7),
-            colorText: Colors.black,
-          );
-        } else {
-          Get.snackbar(
-            'Error',
-            'No se encontró un curso con el NRC: $nrcCode',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFFFFEAA7),
-            colorText: Colors.black,
-          );
-        }
-      } catch (err) {
-        Get.snackbar(
-          "Error",
-          err.toString(),
-          icon: const Icon(Icons.error, color: Colors.white),
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFFFFEAA7),
-          colorText: Colors.black,
-        );
-      }
+      Get.back();
+      Get.snackbar(
+        'Inscripción Exitosa',
+        'Te has inscrito al curso.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFFFD60A),
+        colorText: Colors.black,
+      );
+    } catch (err) {
+      Get.snackbar(
+        "Error",
+        err.toString(),
+        icon: const Icon(Icons.error, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFFFEAA7),
+        colorText: Colors.black,
+      );
     }
   }
 
@@ -117,7 +86,7 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Ingresa el código NRC del curso',
+                'Ingresa el código del curso',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -126,54 +95,18 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Pide el código NRC a tu profesor para inscribirte en el curso',
+                'Pide el código a tu profesor. Es el ID del curso.',
                 style: TextStyle(color: Color(0xFF5B616E)),
               ),
               const SizedBox(height: 16),
 
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Cursos disponibles para prueba:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF000814),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        '• Programación Avanzada - NRC: 12345',
-                        style: TextStyle(color: Color(0xFF000814)),
-                      ),
-                      const Text(
-                        '• Diseño de Interfaces - NRC: 67890',
-                        style: TextStyle(color: Color(0xFF000814)),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Usa estos NRC para probar la inscripción',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF858597),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Campo: Código del Curso
+              // Campo: Código del Curso (ID)
               TextFormField(
                 controller: controllerCourseCode,
                 focusNode: _courseCodeFocusNode,
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.text, // 👈 ya no forzamos número
                 decoration: InputDecoration(
-                  labelText: 'Código del Curso (NRC)',
+                  labelText: 'Código del Curso (ID)',
                   labelStyle: TextStyle(
                     color: _courseCodeFocusNode.hasFocus
                         ? const Color(0xFFD4AF37)
@@ -181,7 +114,6 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF001D3D)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -201,18 +133,15 @@ class _CourseEnrollPageState extends State<CourseEnrollPage> {
                 ),
                 style: const TextStyle(fontSize: 14, color: Color(0xFF000814)),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingresa el código del curso';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'El código debe ser un número';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 32),
 
-              // Botones: Cancelar y Ingresar
+              // Botones
               Row(
                 children: [
                   Expanded(

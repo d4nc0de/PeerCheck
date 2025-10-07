@@ -101,7 +101,7 @@ class RemoteAuthenticationSourceService  implements IAuthenticationSource {
   }
 
   // ====== LOGIN: ahora llama al backend con http ======
-  @override
+ @override
   Future<AuthenticationUser> login(String email, String password) async {
     final uri = Uri.parse('$_baseUrl/auth/$_dbName/login');
 
@@ -112,13 +112,10 @@ class RemoteAuthenticationSourceService  implements IAuthenticationSource {
     );
 
     if (resp.statusCode < 200 || resp.statusCode >= 300) {
-      // intentar sacar mensaje del backend
       String msg = 'Error de autenticación';
       try {
         final parsed = jsonDecode(resp.body);
-        if (parsed is Map && parsed['message'] is String) {
-          msg = parsed['message'];
-        }
+        if (parsed is Map && parsed['message'] is String) msg = parsed['message'];
       } catch (_) {}
       throw Exception(msg);
     }
@@ -126,32 +123,61 @@ class RemoteAuthenticationSourceService  implements IAuthenticationSource {
     final data = jsonDecode(resp.body) as Map<String, dynamic>;
     final access = data['accessToken'] as String?;
     final refresh = data['refreshToken'] as String?;
-    if (access == null || refresh == null) {
+    final userJson = data['user'] as Map<String, dynamic>?;
+
+    if (access == null || refresh == null || userJson == null) {
       throw Exception('Respuesta de login inválida');
     }
 
-    // guarda tokens
+    // Guarda tokens
     await _saveTokens(access, refresh);
 
-    // Mantener tu flujo: resolver/crear usuario local por email
-    AuthenticationUser user = _users.firstWhere(
-      (u) => u.email == email,
-      orElse: () => AuthenticationUser.create(
-        name: _guessNameFromEmail(email),
-        email: email,
-        password: password, // respetamos tu modelo actual
-      ),
-    );
+    // 👇 Tomamos el id real del backend
+    final backendId = userJson['id'] as String?;
+    final nameFromBackend = (userJson['name'] as String?) ?? _guessNameFromEmail(email);
 
-    if (!_users.any((u) => u.email == email)) {
+    // Resuelve/crea usuario local y actualízalo con backendId
+    final existsIndex = _users.indexWhere((u) => u.email == email);
+    AuthenticationUser user;
+    if (existsIndex >= 0) {
+      final prev = _users[existsIndex];
+      user = AuthenticationUser(
+        id: prev.id,                       // conservas id local
+        name: nameFromBackend,
+        email: email,
+        password: password,                // tu modelo lo requiere
+        backendId: backendId,              // 👈 guardamos el id real
+      );
+      _users[existsIndex] = user;
+    } else {
+      user = AuthenticationUser.create(
+        name: nameFromBackend,
+        email: email,
+        password: password,
+        backendId: backendId,              // 👈
+      );
       _users.add(user);
-      await _saveUsers();
     }
 
+    await _saveUsers();
     _currentUser = user;
     await _saveCurrentUser();
     return user;
   }
+
+  // Acceso rápido al usuario logueado (con backendId)
+  @override
+  AuthenticationUser? getCurrentUser() => _currentUser;
+
+  // 👇 Para otras capas (p.ej. cursos) que necesitan el token
+  Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_accessTokenKey);
+  }
+
+  // 👇 Útil cuando solo necesitas el id real del backend en otra capa
+  String? getCurrentBackendUserId() => _currentUser?.backendId;
+
 
   String _guessNameFromEmail(String email) {
     final raw = email.split('@').first;
@@ -228,10 +254,5 @@ Future<AuthenticationUser> signup(
     _currentUser = null;
     await _saveCurrentUser();
     await _clearTokens(); // 👈 limpia tokens al salir
-  }
-
-  @override
-  AuthenticationUser? getCurrentUser() {
-    return _currentUser;
   }
 }

@@ -1,3 +1,7 @@
+import 'package:f_clean_template/features/categories/data/datasources/remote/remote_category_source.dart';
+import 'package:f_clean_template/features/categories/data/datasources/remote/remote_source_adapter.dart';
+import 'package:f_clean_template/features/categories/domain/repositories/i_category_repository.dart';
+import 'package:f_clean_template/features/courses/data/datasources/remote/remote_course_source.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -70,7 +74,7 @@ void initDependencies() {
   Get.put(http.Client(), tag: 'apiClient');
   final client = Get.find<http.Client>(tag: 'apiClient');
 
-  const useRemote = false; // 🔹 Cambia a true si usas API remota
+  const useRemote = true; // 🔹 Cambia a true si usas API remota
 
   // ===== AUTH =====
   if (useRemote) {
@@ -81,16 +85,42 @@ void initDependencies() {
         dbName: kApiDbName,
       ),
     );
+
+
+
+   final authSvc = Get.find<IAuthenticationSource>() as RemoteAuthenticationSourceService;
+
+    // Base URL del módulo de DB (termina en /database)
+    const dbBase = '$kApiBaseUrl/database';
+
+    // DataSource remoto
+    final remoteCourseSource = RemoteCourseSource(
+      client: client,
+      baseUrl: dbBase,
+      dbName: kApiDbName,
+      auth: authSvc,
+    );
+
+    Get.put<ICourseSource>(remoteCourseSource);
+  
+    final remoteCategorySourceAdapter = RemoteCategorySourceAdapter(
+      client: client,
+      baseUrl: dbBase,
+      dbName: kApiDbName,
+      auth: authSvc,
+    );
+    Get.put<ICategorySource>(remoteCategorySourceAdapter);
+    
   } else {
     Get.put<IAuthenticationSource>(LocalAuthenticationSourceService());
+    Get.put<LocalCourseSource>(LocalCourseSource());
+    Get.put<ICourseSource>(Get.find<LocalCourseSource>());
   }
   Get.put<IAuthRepository>(AuthRepository(Get.find<IAuthenticationSource>()));
   Get.put(AuthenticationUseCase(Get.find<IAuthRepository>()));
   Get.put(AuthenticationController(Get.find<AuthenticationUseCase>()));
 
   // ===== COURSES =====
-  Get.put<LocalCourseSource>(LocalCourseSource());
-  Get.put<ICourseSource>(Get.find<LocalCourseSource>());
   Get.put<ICourseRepository>(CourseRepository(Get.find<ICourseSource>()));
   Get.put(CourseUseCase(Get.find<ICourseRepository>()));
   Get.lazyPut(() => CourseController());
@@ -101,14 +131,13 @@ void initDependencies() {
   final groupUseCase = GroupUseCase(groupRepository: groupRepository);
   Get.put(GroupController(groupUseCase));
 
-  // ===== CATEGORIES =====
-  Get.put<LocalCategorySource>(LocalCategorySource());
-  Get.put<ICategorySource>(Get.find<LocalCategorySource>());
-  Get.put<LocalCategoryRepository>(
-      LocalCategoryRepository(Get.find<ICategorySource>()));
-  Get.put<CategoryUseCase>(CategoryUseCase(Get.find<LocalCategoryRepository>()));
-  Get.put<CategoryController>(CategoryController(Get.find<CategoryUseCase>()));
-
+  // usa SIEMPRE la abstracción del repositorio
+  
+  Get.put<ICategoryRepository>(
+    LocalCategoryRepository(Get.find<ICategorySource>()),
+  );
+  Get.put<CategoryUseCase>(CategoryUseCase(Get.find<ICategoryRepository>()));
+  Get.put(CategoryController(Get.find<CategoryUseCase>()));
   // ===== ACTIVITIES =====
   Get.put<LocalActivitySource>(LocalActivitySource());
   Get.put<IActivitySource>(Get.find<LocalActivitySource>());

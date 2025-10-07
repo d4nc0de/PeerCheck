@@ -8,7 +8,7 @@ import 'package:f_clean_template/features/activities/ui/pages/activity_list_page
 class CategoryDetailPage extends StatelessWidget {
   final int categoryIndex;
 
-  const CategoryDetailPage({super.key, required this.categoryIndex});
+  const CategoryDetailPage({super.key, required this.categoryIndex, required String courseId});
 
   @override
   Widget build(BuildContext context) {
