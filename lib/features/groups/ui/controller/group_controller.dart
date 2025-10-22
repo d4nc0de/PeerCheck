@@ -67,6 +67,25 @@ class GroupController extends GetxController {
     }
   }
 
+    Future<void> seedGroupsForCategory({
+    required String courseId,
+    required String categoryId,
+    required int maxStudentsOfCourse,
+    required int groupSize,
+    required String method,
+  }) async {
+    await _groupUseCase.seedGroupsForCategory(
+      courseId: courseId,
+      categoryId: categoryId,
+      maxStudentsOfCourse: maxStudentsOfCourse,
+      groupSize: groupSize,
+      method: method,
+    );
+    // refresca listado si tienes UI de grupos abierta
+    await loadGroupsByCategory(categoryId);
+  }
+
+
   Future<bool> createGroup({
     required String categoryId,
     required int number,

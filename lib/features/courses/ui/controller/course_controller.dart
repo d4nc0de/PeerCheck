@@ -108,6 +108,7 @@ class CourseController extends GetxController {
       );
       return;
     }
+    
 
     logInfo(
       "CourseController: Add course - $name (NRC: $nrc) by ${user.email}",
@@ -148,6 +149,21 @@ class CourseController extends GetxController {
       rethrow;
     }
   }
+
+  int? getMaxStudentsForCourseId(String courseId) {
+      try {
+        final c = _teacherCourses.firstWhere((e) => e.id == courseId);
+        return c.maxStudents;
+      } catch (_) {
+        try {
+          final c = _studentCourses.firstWhere((e) => e.id == courseId);
+          return c.maxStudents;
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
 
   updateCourse(Course course) async {
     logInfo("CourseController: Update course");

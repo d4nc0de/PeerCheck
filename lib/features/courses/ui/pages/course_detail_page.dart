@@ -478,6 +478,9 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
         return const Center(child: CircularProgressIndicator());
       }
       final userGroup = groupController.getStudentGroup(userEmail);
+      // return userGroup == null
+      //     ? _buildNoGroupCard(accent, cardBg)
+      //     : _buildUserGroupCard(userGroup, accent, cardBg);
       return userGroup == null
           ? _buildNoGroupCard(accent, cardBg)
           : _buildUserGroupCard(userGroup, accent, cardBg);
@@ -485,39 +488,55 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
   }
 
   Widget _buildActivitiesSection(Color accent, Color cardBg, double screenWidth) {
-    if (_selectedCategory == null) return const SizedBox.shrink();
+  if (_selectedCategory == null) return const SizedBox.shrink();
 
-    final userEmail = _getCurrentUserEmail();
-    final userGroup = groupController.getStudentGroup(userEmail);
-    if (userGroup == null) return const SizedBox.shrink();
+  // 🔹 Obtener usuario actual
+  final userEmail = _getCurrentUserEmail();
 
-    return Obx(() {
-      final activities = activityController.activities;
-      if (activities.isEmpty) {
-        return Text(
-          'No hay actividades disponibles en esta categoría',
-          style: TextStyle(fontFamily: "Poppins", color: Colors.grey[600]),
-        );
-      }
-
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: activities.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: screenWidth > 600 ? 3 : 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.85,
-        ),
-        itemBuilder: (context, index) {
-          return _buildActivityCard(
-            activity: activities[index],
-            accent: accent,
-            cardBg: cardBg,
-          );
-        },
-      );
-    });
+  // 🔹 Hardcodear grupo si no existe (para pruebas locales)
+  Group? userGroup = groupController.getStudentGroup(userEmail);
+  if (userGroup == null) {
+    userGroup = Group(
+      id: 'fake_group_1',
+      number: 1,
+      categoryId: _selectedCategory!.id,
+      name: 'Grupo de prueba',
+      members: [
+        AuthenticationUser(id: '1', email: 'a@a.com', name: 'Andrés Pérez', password: ''),
+        AuthenticationUser(id: '2', email: 'b@a.com', name: 'Beatriz López', password: ''),
+        AuthenticationUser(id: '3', email: 'c@a.com', name: 'Carlos Gómez', password: ''),
+      ],
+    );
   }
+
+  return Obx(() {
+    final activities = activityController.activities;
+    if (activities.isEmpty) {
+      return Text(
+        'No hay actividades disponibles en esta categoría',
+        style: TextStyle(fontFamily: "Poppins", color: Colors.grey[600]),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: activities.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: screenWidth > 600 ? 3 : 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.85,
+      ),
+      itemBuilder: (context, index) {
+        return _buildActivityCard(
+          activity: activities[index],
+          accent: accent,
+          cardBg: cardBg,
+        );
+      },
+    );
+  });
+}
+
 }

@@ -11,7 +11,8 @@ class GroupUseCase {
   final RemoteGroupRepository groupRepository;
   final CourseController courseController = Get.find();
   final AuthenticationController authController = Get.find();
-
+  final CourseController _courseCtrl = Get.find();
+  
   GroupUseCase({
     required this.groupRepository,
   });
@@ -289,5 +290,60 @@ class GroupUseCase {
       'groupsWithMembers': groupsWithMembers,
       'emptyGroups': emptyGroups,
     };
+  }
+
+  Future<void> seedGroupsForCategory({
+    required String courseId,
+    required String categoryId,
+    required int maxStudentsOfCourse,
+    required int groupSize,
+    required String method,
+  }) async {
+    final normalized = method.trim().toLowerCase();
+    final isRandom = normalized.startsWith('rand');
+
+    // número de grupos = ceil(max / tamaño)
+    final numGroups = max(1, (maxStudentsOfCourse / groupSize).ceil());
+
+    if (!isRandom) {
+      // AUTO-ASIGNADO (vacíos)
+      for (int i = 0; i < numGroups; i++) {
+        await groupRepository.addGroupManual(
+          categoryId: categoryId,
+          name: 'Grupo ${i + 1}',
+          memberEmails: const [],
+        );
+      }
+      return;
+    }
+
+    // ALEATORIO -> obtener estudiantes inscritos y distribuir
+    final enrolledEmails = _courseCtrl.getEnrolledUsers(courseId);
+    if (enrolledEmails.isEmpty) {
+      // sin inscritos, solo crea vacíos
+      for (int i = 0; i < numGroups; i++) {
+        await groupRepository.addGroupManual(
+          categoryId: categoryId,
+          name: 'Grupo ${i + 1}',
+          memberEmails: const [],
+        );
+      }
+      return;
+    }
+
+    // barajar y repartir round-robin
+    final pool = List<String>.from(enrolledEmails)..shuffle();
+    final buckets = List.generate(numGroups, (_) => <String>[]);
+    for (int i = 0; i < pool.length; i++) {
+      buckets[i % numGroups].add(pool[i]);
+    }
+
+    for (int i = 0; i < numGroups; i++) {
+      await groupRepository.addGroupManual(
+        categoryId: categoryId,
+        name: 'Grupo ${i + 1}',
+        memberEmails: buckets[i],
+      );
+    }
   }
 }

@@ -1,3 +1,5 @@
+import 'package:f_clean_template/features/courses/ui/controller/course_controller.dart';
+import 'package:f_clean_template/features/groups/ui/controller/group_controller.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/features/categories/domain/models/category.dart';
 import 'package:f_clean_template/features/categories/domain/use_case/category_usecase.dart';
@@ -35,9 +37,40 @@ class CategoryController extends GetxController {
         method: method,
         groupSize: groupSize,
       );
+
+      // Recargar para tener el _id real (remoto)
+      await loadCategories(courseId);
+
+      // Encontrar la recién creada por (courseId + name).
+      // Si puedes devolver el _id desde el useCase, mejor, pero así evitamos romper capas.
+      final created = categories.lastWhere(
+        (c) => c.courseId == courseId && c.name == name,
+        orElse: () => categories.firstWhere(
+          (c) => c.courseId == courseId,
+          orElse: () => throw Exception('No se pudo localizar la categoría creada'),
+        ),
+      );
+
+      // Max estudiantes del curso
+      final courseCtrl = Get.find<CourseController>();
+      final maxStudents =
+          courseCtrl.getMaxStudentsForCourseId(courseId) ?? groupSize;
+
+      // Crear grupos según método
+      final groupCtrl = Get.find<GroupController>();
+      await groupCtrl.seedGroupsForCategory(
+        courseId: courseId,
+        categoryId: created.id,
+        maxStudentsOfCourse: maxStudents,
+        groupSize: groupSize,
+        method: method,
+      );
+
+      // recargar de nuevo por si la UI de grupos depende de la categoría
       await loadCategories(courseId);
     } catch (e) {
       print("Error al agregar categoría: $e");
+      rethrow;
     }
   }
 

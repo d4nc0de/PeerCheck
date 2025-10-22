@@ -1,3 +1,5 @@
+import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
+import 'package:f_clean_template/features/groups/domain/models/group.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../groups/ui/controller/group_controller.dart';
@@ -28,11 +30,23 @@ class _EvaluatePeersPageState extends State<EvaluatePeersPage> {
   @override
   Widget build(BuildContext context) {
     final currentUser = authController.currentUser.value!;
-    final group = groupController.getStudentGroup(currentUser.email);
+    // final group = groupController.getStudentGroup(currentUser.email);
+    var group = groupController.getStudentGroup(currentUser.email);
 
     if (group == null) {
-      return const Scaffold(
-        body: Center(child: Text("No perteneces a ningún grupo.")),
+      // return const Scaffold(
+      //   body: Center(child: Text("No perteneces a ningún grupo.")),
+      // );
+        group = Group(
+        id: 'fake_group_1',
+        number: 1,
+        categoryId: 'fake_category',
+        name: 'Grupo de prueba',
+        members: [
+          AuthenticationUser(id: '1', email: 'a@a.com', name: 'Andrés Pérez', password: ''),
+          AuthenticationUser(id: '2', email: 'b@a.com', name: 'Beatriz López', password: ''),
+          AuthenticationUser(id: '3', email: 'c@a.com', name: 'Carlos Gómez', password: ''),
+        ],
       );
     }
 
@@ -70,9 +84,11 @@ class _EvaluatePeersPageState extends State<EvaluatePeersPage> {
                     final eval = Evaluation.create(
                       evaluatorId: currentUser.id,
                       evaluatedId: peer.id,
-                      groupId: group.id,
+                      // groupId: group.id,
+                      groupId: '1',
                       activityId: widget.activityId,
-                      categoryId: group.categoryId,
+                      // categoryId: group.categoryId,
+                      categoryId: '1',
                       puntualidad: puntualidad,
                       contribucion: contribucion,
                       compromiso: compromiso,
