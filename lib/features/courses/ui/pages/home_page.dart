@@ -12,6 +12,7 @@ import 'course_enrollment_page.dart';
 import 'add_course_page_student.dart';
 import 'package:f_clean_template/features/categories/ui/pages/add_category_page.dart';
 import 'package:f_clean_template/features/courses/domain/models/course.dart';
+import 'package:dio/dio.dart';
 
 enum UserRole { profesor, estudiante }
 
@@ -27,29 +28,42 @@ class _HomePageState extends State<HomePage> {
   final AuthenticationController authController = Get.find();
 
   UserRole _role = UserRole.profesor;
-  int _selectedIndex = 0; // 🔹 índice actual de la barra inferior
+  int _selectedIndex = 0;
 
+  /// 🔹 Cierre de sesión actualizado (sin usar token)
   Future<void> _logout() async {
     try {
+      // Cierra la sesión localmente
       await authController.logOut();
+
+      // Feedback al usuario
+      Get.snackbar(
+        'Sesión cerrada',
+        'Has cerrado sesión correctamente',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // Redirige al login
+      Get.offAllNamed('/login');
     } catch (e) {
-      logInfo(e);
+      logError('Error al cerrar sesión: $e');
+      Get.snackbar(
+        'Error',
+        'Ocurrió un problema al cerrar sesión',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
-  // 🔹 Controla los clics del BottomNavigationBar
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
 
     switch (index) {
       case 0:
-        // Inicio (no hace nada)
         break;
       case 1:
-        // Aquí podrías abrir "Resultados" en el futuro
         break;
       case 2:
-        // Ir a la página de perfil
         Get.off(() => ProfilePage());
         break;
     }
@@ -152,8 +166,7 @@ class _HomePageState extends State<HomePage> {
                         onRefresh: () async =>
                             courseController.getCoursesByRole(isProfesor),
                         child: ListView(
-                          padding:
-                              const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                           children: [
                             for (final course
                                 in courseController.getCurrentCourses(
@@ -168,8 +181,7 @@ class _HomePageState extends State<HomePage> {
                                     Get.to(() => CourseEnrollmentPage(
                                           courseId: course.id,
                                           courseName: course.name,
-                                          courseCode:
-                                              course.nrc.toString(),
+                                          courseCode: course.nrc.toString(),
                                         ));
                                   } else {
                                     Get.to(() => CourseDetailPage(
@@ -180,10 +192,10 @@ class _HomePageState extends State<HomePage> {
                                   }
                                 },
                                 onDismissed: isProfesor
-                                    ? () => courseController
-                                        .deleteCourse(course)
-                                    : () => courseController
-                                        .unenrollUser(course.id),
+                                    ? () =>
+                                        courseController.deleteCourse(course)
+                                    : () =>
+                                        courseController.unenrollUser(course.id),
                               ),
                               const SizedBox(height: 18),
                             ],

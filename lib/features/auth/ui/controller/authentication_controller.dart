@@ -10,6 +10,10 @@ class AuthenticationController extends GetxController {
 
   final Rxn<AuthenticationUser> currentUser = Rxn<AuthenticationUser>();
   final RxBool isLoading = false.obs;
+  final RxBool rememberMe = false.obs;
+
+  String? rememberedEmail;
+  String? rememberedPassword;
 
   bool get isLogged => currentUser.value != null;
 
@@ -34,7 +38,7 @@ class AuthenticationController extends GetxController {
   Future<AuthenticationUser?> signup(String name, String email, String password) async {
     try {
       return await useCase.signup(name, email, password);
-    } catch (_) {
+    } catch (e) {
       rethrow;
     }
   }
@@ -42,12 +46,19 @@ class AuthenticationController extends GetxController {
   Future<void> logOut() async {
     await useCase.logout();
     currentUser.value = null;
+    await clearRememberedCredentials();
   }
 
-  // 🔹 Remember me
-  final RxBool rememberMe = false.obs;
-  String? rememberedEmail;
-  String? rememberedPassword;
+  Future<void> loadRememberedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final remember = prefs.getBool("remember_me") ?? false;
+
+    if (remember) {
+      rememberedEmail = prefs.getString("remembered_email");
+      rememberedPassword = prefs.getString("remembered_password");
+      rememberMe.value = true;
+    }
+  }
 
   Future<void> saveRememberedCredentials(String email, String password) async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,20 +74,6 @@ class AuthenticationController extends GetxController {
     await prefs.remove("remembered_password");
   }
 
-  Future<void> loadRememberedCredentials() async {
-    final prefs = await SharedPreferences.getInstance();
-    final remember = prefs.getBool("remember_me") ?? false;
-
-    if (remember) {
-      rememberedEmail = prefs.getString("remembered_email");
-      rememberedPassword = prefs.getString("remembered_password");
-      rememberMe.value = true;
-    }
-  }
-
   String get currentUserEmail => currentUser.value?.email ?? '';
   String get currentUserName => currentUser.value?.name ?? '';
-
 }
-
-

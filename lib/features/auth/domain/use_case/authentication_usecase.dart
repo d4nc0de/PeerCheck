@@ -25,4 +25,9 @@ class AuthenticationUseCase {
   AuthenticationUser? getCurrentUser() {
     return repository.getCurrentUser();
   }
+
+  /// 🔹 Restaurar sesión si existe
+  Future<AuthenticationUser?> restoreSession() async {
+    return repository.getCurrentUser();
+  }
 }
