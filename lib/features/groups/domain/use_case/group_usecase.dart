@@ -8,7 +8,7 @@ import 'package:f_clean_template/features/courses/ui/controller/course_controlle
 import 'package:f_clean_template/features/groups/domain/models/group.dart';
 
 class GroupUseCase {
-  final LocalGroupRepository groupRepository;
+  final RemoteGroupRepository groupRepository;
   final CourseController courseController = Get.find();
   final AuthenticationController authController = Get.find();
 

@@ -309,7 +309,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                         ),
                         ElevatedButton.icon(
                           onPressed: () async {
-                            await Get.to(() => AddCategoryPage(courseId: widget.courseId));
+                            await Get.to(() => AddCategoryPage(courseId: widget.courseId, courseName: widget.courseName));
                             _loadAndSelectCategories();
                           },
                           icon: const Icon(Icons.add, size: 18),
@@ -358,10 +358,12 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                                           category: category,
                                         ));
                                   },
-                                  onEdit: () async {
-                                    await Get.to(() => CategoryEditPage(
-                                        category: category, courseId: widget.courseId));
-                                    _loadAndSelectCategories();
+                                  onEdit: ()  {
+                                    Get.to(() => CategoryOverviewPage(
+                                          courseId: widget.courseId,
+                                          courseName: widget.courseName,
+                                          category: category,
+                                        ));
                                   },
                                 ),
                               ),

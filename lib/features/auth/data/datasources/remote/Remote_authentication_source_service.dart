@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http; // 👈 NUEVO
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -255,4 +257,19 @@ Future<AuthenticationUser> signup(
     await _saveCurrentUser();
     await _clearTokens(); // 👈 limpia tokens al salir
   }
+  /// Limpia tokens/estado y avisa a UI que la sesión caducó.
+  /// (No llames al endpoint logout: ya no es válido el access).
+  Future<void> handleUnauthorized() async {
+    await _clearTokens();
+    _currentUser = null;
+    await _saveCurrentUser();
+    // Redirige al login: usa tu ruta/página real
+    // Si tienes rutas nombradas:
+    // Get.offAllNamed('/login');
+    // Si navegas por widget:
+    // Get.offAll(() => const LoginPage());
+    Get.offAllNamed('/login'); // <-- ajústalo a tu app
+  }
+
+
 }

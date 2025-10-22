@@ -1,3 +1,4 @@
+import 'package:f_clean_template/features/courses/ui/pages/course_enrollment_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/category_controller.dart';
@@ -5,8 +6,9 @@ import 'CategoryListPage.dart';
 
 class AddCategoryPage extends StatefulWidget {
   final String courseId;
+  final String courseName;
 
-  const AddCategoryPage({super.key, required this.courseId});
+  const AddCategoryPage({super.key, required this.courseId, required this.courseName });
 
   @override
   State<AddCategoryPage> createState() => _AddCategoryPageState();
@@ -71,7 +73,8 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                   groupSize: groupSize,
                 );
 
-                Get.off(() => CategoryListPage(courseId: widget.courseId));
+                // Get.off(() => CategoryListPage(courseId: widget.courseId));
+                Get.off(() => CourseEnrollmentPage(courseId: widget.courseId, courseName: widget.courseName));
               },
               child: const Text("Guardar"),
             ),

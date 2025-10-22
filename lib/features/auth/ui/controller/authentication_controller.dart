@@ -1,3 +1,5 @@
+import 'package:f_clean_template/features/auth/data/datasources/remote/remote_logout_service.dart';
+import 'package:f_clean_template/features/auth/ui/pages/login_page.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
 import 'package:f_clean_template/features/auth/domain/use_case/authentication_usecase.dart';
@@ -5,8 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationController extends GetxController {
   final AuthenticationUseCase useCase;
+  final RemoteLogoutService _logoutService;
 
-  AuthenticationController(this.useCase);
+  AuthenticationController(this.useCase, this._logoutService);
+  
 
   final Rxn<AuthenticationUser> currentUser = Rxn<AuthenticationUser>();
   final RxBool isLoading = false.obs;
@@ -76,4 +80,13 @@ class AuthenticationController extends GetxController {
 
   String get currentUserEmail => currentUser.value?.email ?? '';
   String get currentUserName => currentUser.value?.name ?? '';
+
+  Future<void> logout() async {
+    try {
+      await _logoutService.logout();
+      Get.offAll(() => LoginPage());
+    } catch (e) {
+      Get.snackbar("Error", "No se pudo cerrar sesión: $e");
+    }
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:f_clean_template/features/activities/ui/pages/activity_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_theme.dart';
@@ -91,7 +92,7 @@ class _ActivityAddPageState extends State<ActivityAddPage> {
                       score: _score,
                     );
                     await controller.addActivity(activity);
-                    Get.back();
+                    Get.to(ActivityListPage);
                   }
                 },
                 child: const Text('Guardar'),

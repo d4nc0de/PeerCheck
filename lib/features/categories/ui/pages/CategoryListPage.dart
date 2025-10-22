@@ -59,7 +59,7 @@ class CategoryListPage extends StatelessWidget {
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await Get.to(() => AddCategoryPage(courseId: courseId));
+          // await Get.to(() => AddCategoryPage(courseId: courseId));
           controller.loadCategories(courseId);
         },
         child: const Icon(Icons.add),

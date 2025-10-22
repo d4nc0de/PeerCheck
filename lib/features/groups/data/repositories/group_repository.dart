@@ -1,125 +1,96 @@
-import 'dart:convert';
-import 'package:f_clean_template/features/groups/data/datasources/local/i_group_source.dart';
+import 'dart:math';
+import 'package:f_clean_template/features/groups/data/datasources/remote/remote_group_source.dart';
 import 'package:f_clean_template/features/groups/domain/models/group.dart' as domain;
 import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/repositories/i_group_repository.dart';
 
-class LocalGroupRepository implements IGroupRepository {
-  final String _storageKey = 'groups';
-  final IGroupSource _groupSource;
+/// Implementación REMOTA de IGroupRepository
+class RemoteGroupRepository implements IGroupRepository {
+  final RemoteGroupSource _src;
 
-  LocalGroupRepository(this._groupSource);
+  RemoteGroupRepository(this._src);
 
   @override
   Future<List<domain.Group>> getGroups() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_storageKey);
-
-    if (jsonString != null) {
-      final List<dynamic> decoded = json.decode(jsonString);
-      return decoded.map((g) => domain.Group.fromJson(g)).toList();
-    }
-
-    print("📂 Leyendo grupos desde storage:");
-    print(jsonString);
+    // No se usa globalmente en UI; si lo necesitas, agréga un read sin filtro
     return [];
   }
 
   @override
   Future<List<domain.Group>> getGroupsByCategory(String categoryId) async {
-    final groups = await getGroups();
-    return groups.where((g) => g.categoryId == categoryId).toList();
+    final rows = await _src.readGroupsByCategory(categoryId);
+    return rows.map((r) {
+      final id = r['_id'] as String;
+      final number = (r['Quantity'] is num) ? (r['Quantity'] as num).toInt() : 0;
+      return domain.Group(
+        id: id,
+        number: number,
+        categoryId: categoryId,
+        name: 'Grupo $number',
+        members: const <AuthenticationUser>[], // si quieres, carga Rel y completa
+      );
+    }).toList();
   }
 
   @override
   Future<domain.Group?> getGroupById(String groupId) async {
-    final groups = await getGroups();
-    try {
-      return groups.firstWhere((g) => g.id == groupId);
-    } catch (e) {
-      return null;
-    }
+    // opcional, no usado actualmente
+    return null;
   }
 
   @override
   Future<void> addGroup(domain.Group group) async {
-    final prefs = await SharedPreferences.getInstance();
-    final groups = await getGroups();
-    groups.add(group);
-
-    final jsonString = json.encode(groups.map((g) => g.toJson()).toList());
-    print("📦 Guardando grupos en storage:");
-    print(jsonString);
-    await prefs.setString(_storageKey, jsonString);
+    // Mantén la vía manual como base
+    await addGroupManual(
+      categoryId: group.categoryId,
+      name: group.name,
+      memberEmails: group.members.map((m) => m.email).toList(),
+    );
   }
 
   @override
   Future<void> updateGroup(domain.Group updatedGroup) async {
-    final prefs = await SharedPreferences.getInstance();
-    final groups = await getGroups();
-
-    final index = groups.indexWhere((g) => g.id == updatedGroup.id);
-    if (index != -1) {
-      groups[index] = updatedGroup;
-      final jsonString = json.encode(groups.map((g) => g.toJson()).toList());
-      await prefs.setString(_storageKey, jsonString);
-    }
+    // No requerido por ahora
+    return;
   }
 
   @override
   Future<void> removeGroup(String groupId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final groups = await getGroups();
-    groups.removeWhere((g) => g.id == groupId);
-
-    final jsonString = json.encode(groups.map((g) => g.toJson()).toList());
-    await prefs.setString(_storageKey, jsonString);
+    await _src.deleteMembersByGroup(groupId);
+    await _src.deleteGroupById(groupId);
   }
 
   @override
   Future<void> removeGroupsByCategory(String categoryId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final groups = await getGroups();
-    groups.removeWhere((g) => g.categoryId == categoryId);
-
-    final jsonString = json.encode(groups.map((g) => g.toJson()).toList());
-    await prefs.setString(_storageKey, jsonString);
+    final groups = await getGroupsByCategory(categoryId);
+    for (final g in groups) {
+      await _src.deleteMembersByGroup(g.id);
+    }
+    await _src.deleteGroupsByCategory(categoryId);
   }
 
-  // ✅ Agregado: creación manual de grupos (modo profesor)
+  // ✅ creación manual (y base para aleatorio cuando se pasa members)
   Future<void> addGroupManual({
     required String categoryId,
-    required String name,
+    required String? name,
     required List<String> memberEmails,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final groups = await getGroups();
+    final existing = await getGroupsByCategory(categoryId);
+    final nextNumber = (existing.isEmpty)
+        ? 1
+        : (existing.map((g) => g.number).reduce(max) + 1);
 
-    // Convertir emails a AuthenticationUser
-    final members = memberEmails
-        .map(
-          (email) => AuthenticationUser(
-            id: email,
-            email: email,
-            name: email.split('@')[0],
-            password: '',
-          ),
-        )
-        .toList();
-
-    final newGroup = domain.Group(
-      id: 'group_${DateTime.now().millisecondsSinceEpoch}',
-      number: groups.length + 1,
+    final groupId = await _src.insertGroup(
       categoryId: categoryId,
-      name: name,
-      members: members,
+      number: nextNumber,
+      isRandomGroup: false,
     );
 
-    groups.add(newGroup);
-
-    final jsonString = json.encode(groups.map((g) => g.toJson()).toList());
-    await prefs.setString(_storageKey, jsonString);
+    if (memberEmails.isNotEmpty) {
+      await _src.insertMembersBatch(
+        groupId: groupId,
+        studentIdsOrEmails: memberEmails,
+      );
+    }
   }
 }
-

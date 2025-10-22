@@ -96,7 +96,10 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.exit_to_app, color: Colors.black87),
-            onPressed: _logout,
+            onPressed: () async {
+              final authController = Get.find<AuthenticationController>();
+              await authController.logout();
+            },
             tooltip: 'Cerrar sesión',
           ),
         ],
