@@ -41,16 +41,38 @@ class _SignUpPageState extends State<SignUpPage> {
 
   // Improved password validator
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return "Contraseña es obligatoria";
-    }
-
-    if (value.length < 6) {
-      return "La contraseña debe tener al menos 6 caracteres";
-    }
-
-    return null;
+  if (value == null || value.isEmpty) {
+    return "Contraseña es obligatoria";
   }
+
+  // Debe tener al menos 8 caracteres
+  if (value.length < 8) {
+    return "Debe tener al menos 8 caracteres";
+  }
+
+  // Al menos una mayúscula
+  if (!RegExp(r'[A-Z]').hasMatch(value)) {
+    return "Debe contener al menos una letra mayúscula";
+  }
+
+  // Al menos una minúscula
+  if (!RegExp(r'[a-z]').hasMatch(value)) {
+    return "Debe contener al menos una letra minúscula";
+  }
+
+  // Al menos un número
+  if (!RegExp(r'\d').hasMatch(value)) {
+    return "Debe contener al menos un número";
+  }
+
+  // Al menos un carácter especial
+  if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
+    return "Debe contener al menos un símbolo especial";
+  }
+
+  return null;
+}
+
 
   // Confirm password validator
   String? _validateConfirmPassword(String? value) {
